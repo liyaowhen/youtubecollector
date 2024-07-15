@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist gettext-domain="song">
+	<schema id="com.liyaowhen.Song" path="/com/liyaowhen/Song/">
+		<key name="window-width" type="i">
+			<default>600</default>
+		</key>
+		<key name="window-height" type="i">
+			<default>400</default>
+		</key>
+		<key name="window-maximized" type="b">
+			<default>false</default>
+		</key>
+		<key name="song-folder" type="s">
+			<default>""</default>
+		</key>
+		<key name="songs" type="a{sas}"> <!--A dictionary that maps strings to strings-->
+			<default>{"Untitled":[]}</default>
+		</key>
+	</schema>
+</schemalist>

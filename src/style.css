@@ -1,0 +1,32 @@
+/*
+You can type here any CSS rule recognized by GTK.
+You can temporarily disable this custom CSS by clicking on the “Pause” button above.
+
+Changes are applied instantly and globally, for the whole application.
+*/
+
+
+
+window {
+	background: rgb(238,174,202);
+	background: linear-gradient(200deg, rgba(238,174,202,1) 0%, rgba(148,187,233,1) 100%);
+    	background-repeat: no-repeat;
+    	background-size: cover;
+}
+
+.toolbar {
+	
+}
+
+navigation-split-view widget.sidebar-pane {
+	background-color: alpha(rgb(255,255,255), 0.1);
+	outline: 0;
+	border-radius: 5px;
+	margin-left: 5px;
+	margin-bottom: 5px;
+}
+
+label {
+	filter: none;
+}
+

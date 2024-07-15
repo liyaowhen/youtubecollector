@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist gettext-domain="song">
+	<schema id="com.liyaowhen.Song.playlists" path="/com/liyaowhen/Song/">
+		<key name="playlists" type="as"> <!--whenever you deal with playlists, 
+			make sure to always affect the playlist's list of songs as well to avoid bugs,
+			for example renaming a playlist here also needs to rename the key in which it has songs-->
+            <default>["untitled", "example"]</default>
+        </key>
+		<key name="untitled" type="as"> <!--keys cant be capitalized, 
+			so the code assumes capitilization for playlist names when 
+			rendering to avoid informality-->
+			<default>[""]</default>
+		</key>
+		<key name="example" type="as">
+			<default>[""]</default>
+		</key>
+	</schema>
+</schemalist>

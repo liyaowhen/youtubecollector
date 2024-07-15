@@ -1,0 +1,6 @@
+data/com.liyaowhen.Song.desktop.in
+data/com.liyaowhen.Song.metainfo.xml.in
+data/com.liyaowhen.Song.gschema.xml
+src/main.vala
+src/window.vala
+src/window.ui
