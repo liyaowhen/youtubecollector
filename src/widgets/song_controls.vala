@@ -10,6 +10,7 @@ namespace Song {
         public Gtk.Scale progress_bar;
         public Gtk.Adjustment progress_bar_adjustment;
         private bool isDragging;
+        private Gtk.Button progress_bar_controller;
 
         public bool isPlaying;
         public string current_song;
@@ -35,55 +36,45 @@ namespace Song {
             progress_bar.set_draw_value(false);
 
 
-            Timeout.add(1, () => {
+            Timeout.add(500, () => {
 
-                if (playbin != null && isDragging != true) {
+                if (playbin != null && isPlaying) {
                     var position = (int64) 0;
                     var duration = (int64) 0;
                     
+                    playbin.set_state(Gst.State.PLAYING);
+
                     // Query the current position and duration
                     if (playbin.query_position(Format.TIME, out position) && 
                         playbin.query_duration(Format.TIME, out duration)) {
                         progress_bar.set_range(0, (double) duration / Gst.SECOND);
                         progress_bar.set_value((double) position / Gst.SECOND);
                     }
+                    print(position.to_string() + "\n" + duration.to_string() + "\n");
+                } else {
+                    if (isDragging) print("stillDragging");
+                    if (playbin == null) print("playbinnull");
+                    print("what went wrong");
                 }
-                //print("running");
+
+                print("working");
 
                 return true;
             });
 
-            uint timeout_id = 0;
-
             progress_bar.change_value.connect((range) => {
 
-                if (timeout_id != 0) {
-                    try {
-                        Source.remove(timeout_id);
-                    } catch (GLib.Error e) {
-                        // the function above often complains
-                    }
-                }
 
-                isDragging = true;
                 if (playbin != null) {
                     var seek_time = (int64)(progress_bar.get_value() * Gst.SECOND);
                     playbin.seek_simple(Format.TIME, SeekFlags.FLUSH | SeekFlags.KEY_UNIT, seek_time);
                 }
                 
-                timeout_id = Timeout.add(50, () => {
 
-                    isDragging = false;
-
-                    return false;
-                });
             }); // emitted when user (not program) changes the scale
 
-            progress_bar.value_changed.connect((range) => {
 
-            });
-            
-
+        
             append(progress_bar);
 
             // add controls to control the music
@@ -112,6 +103,7 @@ namespace Song {
                     play_button.set_icon_name("media-playback-start-symbolic");
                 }
                 return true;
+                
             });
 
             play_button.clicked.connect(() => {

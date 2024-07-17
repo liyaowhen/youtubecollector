@@ -12,7 +12,7 @@ namespace Song {
 
         construct {
 
-            var gesture = new Gtk.GestureDrag();
+            SongController.window = this;
 
             var provider = new Gtk.CssProvider();
             provider.load_from_path("style.css");
@@ -58,8 +58,6 @@ namespace Song {
             _content.add_top_bar (title_bar);
             _content.set_content (split_view);
 
-            _content.add_controller(gesture);
-            SongController.gesture = gesture;            
             
             collapse_button.clicked.connect(() => {
                 if(split_view.get_collapsed ()){

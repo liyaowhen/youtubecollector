@@ -15,7 +15,7 @@ namespace Song {
 
         public static SongControls song_controls;
 
-        public static GestureDrag gesture;
+        public static Adw.ApplicationWindow window;
         
     }
 

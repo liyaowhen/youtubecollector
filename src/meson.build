@@ -17,7 +17,7 @@ song_deps = [
   dependency('libadwaita-1', version: '>= 1.4'),
   dependency('vte-2.91-gtk4'),
   dependency('jsonrpc-glib-1.0'),
-  dependency('gstreamer-1.0')
+  dependency('gstreamer-1.0'),
 ]
 
 song_sources += gnome.compile_resources('song-resources',
