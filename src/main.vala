@@ -20,6 +20,17 @@
 
 int main (string[] args) {
     Gst.init(ref args);
+
+    Song.Config.init("com.liyaowhen.Song");
+    var config = Song.Config.get_instance ();
+
+    Song.PlaylistObject playlist = new Song.PlaylistObject();
+    playlist.name = "QQ";
+    playlist.add_item(Song.PlaylistItem.load_item(Song.ItemType.AUDIO, "aaa", "eee"));
+
+    config.playlists.append(playlist);
+    config.save();
+
     var app = new Song.Application ();
     return app.run (args);
 }
