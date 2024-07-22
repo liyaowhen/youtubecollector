@@ -281,14 +281,14 @@ namespace Song {
                     }
 
                     if (file_valid) {
-                        if (SongController.main_view_content == null) return;
+                        /*if (SongController.main_view_content == null) return;
                         var main_content = SongController.main_view_content;
-                        string[] _string_array = _list.get_strv(main_content.current_playlist);
+                        string[] _string_array = _list.get_strv(main_content.current_playlist.name);
                         _string_array += song_title;
                         _list.set_strv(main_content.current_playlist, _string_array);
                         foreach(string str in _list.get_strv(main_content.current_playlist)) {
                             print("this playlist has \n" + str);
-                        }
+                        }*/
                     }
 
                     //TODO implement error page

@@ -55,11 +55,11 @@ namespace Song {
         }
 
         private Config() {
-            playlists = new List<PlaylistObject>();
             load();
         }
         
         private async void load() {
+            playlists = new List<PlaylistObject>();
             print("load");
             File config_file = File.new_for_path(config_file_path);
             if (config_file.query_exists(null)) {
@@ -117,6 +117,11 @@ namespace Song {
             }
         }
     
+        /*public List<PlaylistObject> get_playlists() {
+            
+            return playlists.;
+        }*/
+
         // Save configuration to file
         public async void save() {
             print("save");
@@ -214,7 +219,7 @@ namespace Song {
             File config_file = File.new_for_path(config_file_path);
             if (!config_file.query_exists(null)) {
                 print("file never existed");
-                Config.get_instance().save(); // Create the file with default values
+                Config.get_instance().save.begin(); // Create the file with default values
             }
         }
     }

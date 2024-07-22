@@ -2,10 +2,10 @@ namespace Song {
     public class MusicListRow : Gtk.Box {
 
         private Settings settings = new Settings("com.liyaowhen.Song.playlists");
-        public string song_name;
+        public PlaylistItem item;
 
-        public MusicListRow (string _song_name) {
-            this.song_name = _song_name;
+        public MusicListRow (PlaylistItem _item) {
+            this.item = _item;
             build_ui();
         }
 
@@ -23,8 +23,8 @@ namespace Song {
         }
 
         private void build_ui() {
-            var label = new Gtk.Label (song_name);
-            print(song_name + "making playlists song button");
+            var label = new Gtk.Label (item.name);
+            print(item.name + "making playlists song button");
             label.hexpand = true;
             append(label);
 
@@ -33,11 +33,11 @@ namespace Song {
             play_button.add_css_class("flat");
 
             play_button.clicked.connect(() => {
-                if (SongController.song_controls.current_song != song_name) {
-                    SongController.song_controls.change_song(song_name);
+                if (SongController.song_controls.current_item != item) {
+                    SongController.song_controls.change_item(item);
                     play_button.icon_name = "media-playback-pause-symbolic";
                     Timeout.add(1, () => {
-                        if (SongController.song_controls.current_song != song_name) {
+                        if (SongController.song_controls.current_item != item) {
                             // when another song is called to play, reset the button state
                             play_button.icon_name = "media-playback-start-symbolic";
                             return false;

@@ -13,7 +13,7 @@ namespace Song {
         private Gtk.Button progress_bar_controller;
 
         public bool isPlaying;
-        public string current_song;
+        public PlaylistItem current_item;
 
 
         public Gst.Element playbin;
@@ -123,7 +123,7 @@ namespace Song {
         }
 
         private void play_music() {
-            if (current_song != null) {
+            if (current_item != null) {
                 
             }
         }
@@ -138,15 +138,15 @@ namespace Song {
             isPlaying = false;
         }
 
-        public void change_song(string song) {
-            print("song is now " + song + "\n");
-            current_song = song;
-            string file_path = "file://" + settings.get_string("song-folder") +  "/" + current_song + ".mp3";
+        public void change_item(PlaylistItem item) {
+            print("song is now " + item.name + "\n");
+            current_item = item;
+            string file_path = item.file;
             print("song full path is " + file_path);
             playbin.set_state(Gst.State.NULL);
             playbin.set_property("uri", file_path);
-            playbin.set_state(Gst.State.PLAYING);
-            isPlaying = true;
+            //playbin.set_state(Gst.State.PLAYING);
+            //isPlaying = true;
 
         }
 

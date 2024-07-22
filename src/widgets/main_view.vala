@@ -69,7 +69,7 @@ namespace Song {
 
         private Settings settings = new Settings("com.liyaowhen.Song.playlists");
         private Adw.NavigationView navigation_view;
-        public string current_playlist;
+        public PlaylistObject current_playlist;
 
         public MainViewContent() {
             vexpand = true;
@@ -86,24 +86,12 @@ namespace Song {
             SongController.main_view_content = this;
         }
 
-        public void change_page(string playlist_name) {
+        public void change_page(PlaylistObject playlist) {
             print("change page called");
 
-            bool isKeyValid = false;
-            foreach (string key in settings.list_keys()){
-                if (key == playlist_name) {
-                    print("valid playlist");
-                    isKeyValid = true;
-                }
-            }
-            if (!isKeyValid) {
-                print("invalid playlist_name");
-                return;
-            }
+            current_playlist = playlist;
 
-            current_playlist = playlist_name;
-
-            string[] songs = settings.get_strv(playlist_name);
+            /*string[] songs = settings.get_strv(playlist_name);
             print("\n playlist contains: \n" + songs[1]);
             if (songs.length == 1) {
                 if (songs[0] == "") {empty_playlist_ui(playlist_name); return;}
@@ -115,39 +103,49 @@ namespace Song {
                     print("making a page with actual content");
                     playlist_ui(playlist_name);
                 }
+            }*/
+
+            if (playlist.items.is_empty()) {
+                empty_playlist_ui(playlist);
+                return;
+            } else {
+                playlist_ui(playlist);
             }
 
 
         }
 
-        private void empty_playlist_ui(string playlist_name) {
+        private void empty_playlist_ui(PlaylistObject playlist) {
             var empty_page = new Adw.StatusPage();
             var parent_page = new Adw.NavigationPage(empty_page,"no songs added");
-            empty_page.set_title("Empty Playlist " + playlist_name);
+            empty_page.set_title("Empty Playlist " + playlist.name);
             empty_page.set_icon_name("edit-find-symbolic");
             empty_page.set_description("Click the button on the top left to add songs in this playlist.");
             navigation_view.push(parent_page);      
         }
 
-        private void playlist_ui(string playlist_name) {
+        private void playlist_ui(PlaylistObject playlist) {
             var playlist_page = new Adw.StatusPage();
-            playlist_page.set_title(playlist_name);
+            playlist_page.set_title(playlist.name);
             playlist_page.set_icon_name("emblem-music-symbolic");
 
-            load_music(playlist_page, playlist_name);
+            load_music(playlist_page, playlist);
             
-            var parent_page = new Adw.NavigationPage(playlist_page, playlist_name);
+            var parent_page = new Adw.NavigationPage(playlist_page, playlist.name);
             navigation_view.push(parent_page);
         }
 
-        private void load_music(Adw.StatusPage page, string playlist_name) {
+        private void load_music(Adw.StatusPage page, PlaylistObject playlist) {
             Adw.Clamp clamp = new Adw.Clamp();
             Gtk.ListBox content = new Gtk.ListBox();
-            foreach (string i in settings.get_strv(playlist_name)) {
+            /*foreach (string i in settings.get_strv(playlist_name)) {
                 if (i != "") {
                     content.append(new MusicListRow(i));
                 }
-            }
+            }*/
+            playlist.items.foreach((item) => {
+                content.append(new MusicListRow(item));
+            });
             clamp.child = content;
             page.child = clamp;
             content.hexpand = true;

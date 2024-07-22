@@ -38,7 +38,7 @@ namespace Song {
     public class SideBarContent : Gtk.Box {
 
         private Settings settings = new Settings("com.liyaowhen.Song.playlists");
-        public List<Playlist> playlists;
+        public List<PlaylistButton> playlist_buttons;
         private MainView main_view;
 
         public SideBarContent() {
@@ -60,22 +60,34 @@ namespace Song {
             vexpand_set = true;
             hexpand_set = true;
 
-            Playlist initial_playlist;
+            PlaylistObject initial_playlist;
 
-            var playlist_names = settings.get_strv("playlists");
+            /*var playlist_names = settings.get_strv("playlists");
             foreach (string _name in playlist_names) {
-                var playlist = new Playlist(_name);
+                var playlist = new PlaylistButton(_name);
                 if (_name == playlist_names[0]) {
                     initial_playlist = playlist;
                 }
                 playlists.append(playlist);
                 append(playlist);
-            }
+            }*/
 
-            print("sidbar requesting main_view_content switch to playlist of name:\n" + playlist_names[1]);
+            Config config = Config.get_instance();
+            
+            bool firstDeclared = false;
+            config.playlists.foreach((_playlist) => {
+                var button = new PlaylistButton(_playlist);
+                if (!firstDeclared) {initial_playlist = _playlist; firstDeclared = true;}
+
+                playlist_buttons.append(button);
+                append(button);
+            });
+
+
+            //print("sidbar requesting main_view_content switch to playlist of name:\n" + playlists.nth_data(0).name);
             Timeout.add(1, () => {
                 if (SongController.main_view_content != null) {
-                    SongController.main_view_content.change_page(playlist_names[0]);
+                    SongController.main_view_content.change_page(initial_playlist);
                     return false;
 
                 }

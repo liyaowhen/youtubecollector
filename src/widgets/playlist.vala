@@ -1,15 +1,15 @@
 namespace Song {
-    public class Playlist : Gtk.Button {
+    public class PlaylistButton : Gtk.Button {
 
         private Settings settings = new Settings ("com.liyaowhen.Song");
 
         public signal void removal_mode();
         public signal void exit_removal_mode();
         
-        private string playlist_name;
+        private PlaylistObject playlist;
 
-        public Playlist (string _playlist_name) {
-            this.playlist_name = _playlist_name;
+        public PlaylistButton (PlaylistObject _playlist) {
+            this.playlist = _playlist;
 
             initialize();
         }
@@ -19,12 +19,12 @@ namespace Song {
 
             clicked.connect(() => {
                 //assumes that main_view is already instanciated
-                SongController.main_view_content.change_page(playlist_name);
+                SongController.main_view_content.change_page(playlist);
             });
         }
 
         public void initialize() {
-            set_label(playlist_name);
+            set_label(playlist.name);
             
         }
     }
