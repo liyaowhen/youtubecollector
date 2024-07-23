@@ -10,7 +10,8 @@ song_sources = [
   'controllers/song_controller.vala',
   'widgets/music_list_row.vala',
   'widgets/song_controls.vala',
-  'playlist_object.vala'
+  'playlist_object.vala',
+  'widgets/new_playlist_popover.vala'
 ]
 
 song_deps = [
@@ -19,6 +20,7 @@ song_deps = [
   dependency('vte-2.91-gtk4'),
   dependency('json-glib-1.0'),
   dependency('gstreamer-1.0'),
+  dependency('gee-0.8'),
 ]
 
 song_sources += gnome.compile_resources('song-resources',

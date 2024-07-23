@@ -4,7 +4,7 @@ namespace Song {
 
         public Settings settings = new Settings("com.liyaowhen.Song.playlists");
         public MainViewContent main_content;
-        public string current_playlist;
+        public PlaylistObject current_playlist;
 
         public MainView(Window _window) {
             this.window = _window;
@@ -67,7 +67,6 @@ namespace Song {
 
     public class MainViewContent : Gtk.Box {
 
-        private Settings settings = new Settings("com.liyaowhen.Song.playlists");
         private Adw.NavigationView navigation_view;
         public PlaylistObject current_playlist;
 
@@ -84,6 +83,16 @@ namespace Song {
 
         construct {
             SongController.main_view_content = this;
+
+            var config = Config.get_instance();
+            config.config_changed.connect(() => {
+                if (config.playlists.length() == 1) {
+                    config.playlists.foreach((i) => {
+                        change_page(i);
+                        return;
+                    });
+                }
+            });
         }
 
         public void change_page(PlaylistObject playlist) {

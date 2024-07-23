@@ -12,9 +12,10 @@ namespace Song {
         private bool isDragging;
         private Gtk.Button progress_bar_controller;
 
+        private string item_directory = Path.build_path("/", Environment.get_user_config_dir(), "com.liyaowhen.Song");
+
         public bool isPlaying;
         public PlaylistItem current_item;
-
 
         public Gst.Element playbin;
 
@@ -52,12 +53,9 @@ namespace Song {
                     }
                     print(position.to_string() + "\n" + duration.to_string() + "\n");
                 } else {
-                    if (isDragging) print("stillDragging");
-                    if (playbin == null) print("playbinnull");
-                    print("what went wrong");
+
                 }
 
-                print("working");
 
                 return true;
             });
@@ -144,9 +142,9 @@ namespace Song {
             string file_path = item.file;
             print("song full path is " + file_path);
             playbin.set_state(Gst.State.NULL);
-            playbin.set_property("uri", file_path);
-            //playbin.set_state(Gst.State.PLAYING);
-            //isPlaying = true;
+            playbin.set_property("uri", File.new_for_path(file_path).get_uri());
+            playbin.set_state(Gst.State.PLAYING);
+            isPlaying = true;
 
         }
 

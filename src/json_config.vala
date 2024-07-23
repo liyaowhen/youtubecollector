@@ -46,6 +46,7 @@ namespace Song {
 
         public List<PlaylistObject> playlists;
         public signal void config_changed();
+        public signal void loaded();
 
         public static Config get_instance() {
             if (instance == null) {
@@ -86,35 +87,45 @@ namespace Song {
                         // Parse settings from JSON
                         if (json_config.has_member("playlists")) {
                             Json.Object _playlists = json_config.get_object_member("playlists");
-                            _playlists.foreach_member((object) => {
+                            print("\n." + _playlists.get_members().data + ".\n");
+                            // invalid methoud down below
+
+                            var members = _playlists.get_members();
+                            members.foreach((member_name) => {
                                 PlaylistObject _playList = new PlaylistObject();
-
-                                _playList.name = object.get_string_member("name");
+                                var object = _playlists.get_member(member_name).get_object();
+                                _playList.name = member_name;
                                 // TODO: ADD PROPERTIES _playList.properties = whatever
-                                object.get_object_member("items").foreach_member((item) => {
+                                // TODO: fix item iterator, it is invalid as it calls on each member, not each "object"
+                                var items_object = object.get_object_member("items");
+                                var items_list = items_object.get_members();
+                                items_list.foreach((item) => {
                                     PlaylistItem _item = new PlaylistItem();
-                                    _item.item_type = item.get_int_member("item_type");
-                                    _item.name = item.get_string_member("name");
-                                    _item.file = item.get_string_member("file");
-
-                                    if (item.has_member("picture")) {
-                                        _item.picture = item.get_string_member("picture");
+                                    var _item_object = items_object.get_object_member(item);
+                                    _item.item_type = _item_object.get_int_member("item_type");
+                                    _item.name = _item_object.get_string_member("name");
+                                    _item.file = _item_object.get_string_member("file");
+                                    if (_item_object.has_member("picture")) {
+                                        _item.picture = _item_object.get_string_member("picture");
                                     }
-                                    if (item.has_member("source")) {
-                                        _item.picture = item.get_string_member("source");
+                                    if (_item_object.has_member("source")) {
+                                        _item.picture = _item_object.get_string_member("source");
                                     }
                                     _playList.items.append(_item);
                                 });
+                                
+
                                 playlists.append(_playList);
                             });
                         }
                     }
-
+                    loaded();
 
                 } catch (Error e) {
                     print("Error reading configuration file: %s\n", e.message);
                 }
             }
+            
         }
     
         /*public List<PlaylistObject> get_playlists() {
@@ -203,6 +214,7 @@ namespace Song {
         public static void init(string app_name) {
             string config_dir = Environment.get_user_config_dir();
             string app_config_dir = Path.build_filename(config_dir, app_name);
+            
             config_file_path = Path.build_filename(app_config_dir, "config.json");
 
             File app_dir = File.new_for_path(app_config_dir);
@@ -221,6 +233,7 @@ namespace Song {
                 print("file never existed");
                 Config.get_instance().save.begin(); // Create the file with default values
             }
+
         }
     }
 } 

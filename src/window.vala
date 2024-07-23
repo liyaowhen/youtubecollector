@@ -29,11 +29,22 @@ namespace Song {
             //title_bar.set_decoration_layout("icon:close");
             title_bar.show_title = false;
 
+            var add_playlist = new Gtk.Button();
+            var add_playlist_content = new Adw.ButtonContent();
+            add_playlist_content.set_icon_name("tab-new-symbolic");
+            add_playlist_content.set_label("New Playlist");
+            add_playlist.set_child(add_playlist_content);
+
+            add_playlist.clicked.connect(() => {
+                var popover = new NewPlaylistPopover();
+                popover.present(this);
+            });
+
             var add_button = new Gtk.Button();
             var add_button_content = new Adw.ButtonContent ();
             add_button_content.set_icon_name("tab-new-symbolic");
             add_button_content.set_label("new song");
-            add_button_content.set_parent(add_button);
+            add_button.set_child(add_button_content);
 
             add_button.clicked.connect(() => {
                 new_music_popover_show();
@@ -41,6 +52,7 @@ namespace Song {
 
             var collapse_button = new Gtk.Button.from_icon_name ("folder-open-symbolic");
             title_bar.pack_start (collapse_button);
+            title_bar.pack_start(add_playlist);
             title_bar.pack_start(add_button);
            
 

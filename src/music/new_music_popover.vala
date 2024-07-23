@@ -13,6 +13,8 @@ namespace Song {
         private Gtk.Button next_button;
         private bool isPlaylistFolder;
 
+        private string item_directory = Path.build_path("/", Environment.get_user_data_dir(), "com.liyaowhen.Song");
+
         public string song_title = "";
         public string song_url = "";
 
@@ -91,7 +93,7 @@ namespace Song {
 
         // starting page (choose what kind of app should be)
 
-            var song_folder_button = new Gtk.Button();
+            /*var song_folder_button = new Gtk.Button();
             var song_folder_button_content = new Adw.ButtonContent();
             song_folder_button_content.set_icon_name("folder-symbolic");
             song_folder_button_content.set_parent(song_folder_button);
@@ -122,24 +124,16 @@ namespace Song {
                 });
                 
                 file_chooser.show();
-            });
+            }); */
 
-            if (settings.get_string("song-folder") == null) {
-                isPlaylistFolder = false;
-            } else isPlaylistFolder = true;
-
-            song_folder_button.destroy.connect(() => {
-                // for safety
-                song_folder_button_content.destroy();
-            });
-
+            
             var online_button = new Gtk.Button();
             var online_button_content = new Adw.ButtonContent();
             online_button_content.set_icon_name("globe-alt2-symbolic");
             online_button_content.set_label("from the internet (spotify and youtube supported)");
             online_button_content.set_parent(online_button);
             online_button.set_hexpand(false);
-            online_button.sensitive = isPlaylistFolder;
+
 
             online_button.destroy.connect(() => {
                 // for safety
@@ -152,7 +146,7 @@ namespace Song {
             import_button_content.set_label("use your own music");
             import_button_content.set_parent(import_button);
             import_button.set_hexpand(false);
-    import_button.sensitive = isPlaylistFolder;
+
 
             import_button.destroy.connect(() => {
                 // for safety
@@ -162,7 +156,7 @@ namespace Song {
 
 
             var starting_page_content = new Gtk.Box(Gtk.Orientation.VERTICAL, 5);
-            starting_page_content.append(song_folder_button);
+
             starting_page_content.append(online_button);
             starting_page_content.append(import_button);
 
@@ -229,8 +223,18 @@ namespace Song {
                 next_button.show();
                 next_button.sensitive = false;
                 steps_state = "online";
+
+                var path = File.new_for_path(item_directory);
+                if (!path.query_exists(null)) {
+                    try {
+                        path.make_directory_with_parents(null);
+                    } catch (GLib.Error e) {
+                        print(e.message);
+                    }
+                }
+
                 terminal.spawn_async(Vte.PtyFlags.DEFAULT,
-                    settings.get_string("song-folder"),
+                    item_directory,
                     {"bash"}, 
                     null, 
                     GLib.SpawnFlags.DO_NOT_REAP_CHILD,
@@ -241,21 +245,10 @@ namespace Song {
                     GLib.Cancellable.get_current(),
                     (vterm, gid) => {
                 });
-                
+                print(Environment.get_user_data_dir());
             });
 
-            // check if there is a folder for the songs to be stored
-            if (this.settings.get_string("song-folder").length == 0) {
-                song_folder_button_content.set_label("Set download directory");
-                song_folder_button.add_css_class("suggested-action");
-                online_button.set_sensitive(false);
-                import_button.set_sensitive(false);
-            } else {
-                song_folder_button_content.set_label(settings.get_string("song-folder"));
-                settings.changed.connect(() => {
-                    song_folder_button_content.set_label(settings.get_string("song-folder"));
-                });
-            }
+            
 
             download.connect(() => {
                 navigation_view_steps.push(downloading_page);
@@ -268,12 +261,12 @@ namespace Song {
                 terminal.set_input_enabled(false);
                 terminal.child_exited.connect(() => {
 
-                    Settings _list = new Settings("com.liyaowhen.Song.playlists");
+                  
                     //Check if the song created had no errors
                     bool file_valid = true;
                     try {
-                        var file = File.new_for_path(settings.get_string("song-folder") + "/" + song_title + ".mp3");
-                        print("file is \n" + settings.get_string("song-folder") + "/" + song_title + ".mp3");
+                        var file = File.new_for_path(item_directory + "/" + song_title + ".mp3");
+                        print("file is \n" + item_directory + "/" + song_title + ".mp3");
                         file.read();
                     } catch (GLib.Error e) {
                         print(e.message);
@@ -289,6 +282,17 @@ namespace Song {
                         foreach(string str in _list.get_strv(main_content.current_playlist)) {
                             print("this playlist has \n" + str);
                         }*/
+
+                        PlaylistItem item = new PlaylistItem();
+                        item.name = song_title;
+                        item.file = "%s.%s".printf(Path.build_filename(item_directory, song_title), "mp3");
+                        item.source = song_url;
+
+                        var main_content = SongController.main_view_content;
+                        main_content.current_playlist.add_item(item);
+
+                        Config.get_instance().save.begin();
+                        //TODO: implement
                     }
 
                     //TODO implement error page

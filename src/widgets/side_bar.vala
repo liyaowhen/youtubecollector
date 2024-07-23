@@ -38,7 +38,7 @@ namespace Song {
     public class SideBarContent : Gtk.Box {
 
         private Settings settings = new Settings("com.liyaowhen.Song.playlists");
-        public List<PlaylistButton> playlist_buttons;
+        public Gee.HashSet<PlaylistButton> playlist_buttons = new Gee.HashSet<PlaylistButton>();
         private MainView main_view;
 
         public SideBarContent() {
@@ -79,10 +79,28 @@ namespace Song {
                 var button = new PlaylistButton(_playlist);
                 if (!firstDeclared) {initial_playlist = _playlist; firstDeclared = true;}
 
-                playlist_buttons.append(button);
+                playlist_buttons.add(button);
                 append(button);
             });
 
+            config.config_changed.connect(() => {
+                playlist_buttons.clear();
+                config.playlists.foreach((_playlist) => {
+                    var button = new PlaylistButton(_playlist);
+    
+                    playlist_buttons.add(button);
+                    append(button);
+                });
+            });
+
+            Timeout.add(1000, () => {
+                if (playlist_buttons == null) {
+                    print("\n playlist buttons empty");
+                } else {
+                    print("\n playlist not empty");
+                }
+
+            });
 
             //print("sidbar requesting main_view_content switch to playlist of name:\n" + playlists.nth_data(0).name);
             Timeout.add(1, () => {
@@ -99,16 +117,6 @@ namespace Song {
 
         }
 
-        /*private void reconfigure_playlist_button_group() {
-            foreach (Playlist i in playlists) {
-                foreach (Playlist j in playlists) {
-                    if (i != j) {
-                        i.set_group(j);
-                    }
-                }
-            } 
-        }*/
-
         
     }
 
@@ -120,7 +128,7 @@ namespace Song {
 
         public SideBarControls(SideBarContent _sidebar_content) {
             this.sidebar_content = _sidebar_content;
-
+            
         }
 
         construct {
@@ -147,6 +155,25 @@ namespace Song {
                 action_bar.pack_start(select_button);
                 //action_bar.set_center_widget(empty_spacer());
                 action_bar.pack_end(options_button);
+
+                select_button.toggled.connect((i) => {
+                    if (sidebar_content == null) {
+                        print("\n sidebar is null");
+                    } else if (sidebar_content.playlist_buttons == null) {
+                        print("\n sidebar buttons are null");
+                    }
+                    if (i.get_active()) {
+                        sidebar_content.playlist_buttons.foreach((e) => {
+                            e.enter_removal_mode();
+                            print(e.name);
+                        });
+                    } else {
+                        sidebar_content.playlist_buttons.foreach((e) => {
+                            e.exit_removal_mode();
+                            print(e.name);
+                        });
+                    }
+                });
                 
 
             // signals
