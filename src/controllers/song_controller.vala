@@ -15,7 +15,9 @@ namespace Song {
 
         public static SongControls song_controls;
 
-        public static Adw.ApplicationWindow window;
+        public static Song.Window window;
+        
+        public static Adw.ToastOverlay toast_overlay = new Adw.ToastOverlay();
         
     }
 

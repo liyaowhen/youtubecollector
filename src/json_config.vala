@@ -87,37 +87,47 @@ namespace Song {
                         // Parse settings from JSON
                         if (json_config.has_member("playlists")) {
                             Json.Object _playlists = json_config.get_object_member("playlists");
-                            print("\n." + _playlists.get_members().data + ".\n");
-                            // invalid methoud down below
+                            
 
                             var members = _playlists.get_members();
-                            members.foreach((member_name) => {
-                                PlaylistObject _playList = new PlaylistObject();
-                                var object = _playlists.get_member(member_name).get_object();
-                                _playList.name = member_name;
-                                // TODO: ADD PROPERTIES _playList.properties = whatever
-                                // TODO: fix item iterator, it is invalid as it calls on each member, not each "object"
-                                var items_object = object.get_object_member("items");
-                                var items_list = items_object.get_members();
-                                items_list.foreach((item) => {
-                                    PlaylistItem _item = new PlaylistItem();
-                                    var _item_object = items_object.get_object_member(item);
-                                    _item.item_type = _item_object.get_int_member("item_type");
-                                    _item.name = _item_object.get_string_member("name");
-                                    _item.file = _item_object.get_string_member("file");
-                                    if (_item_object.has_member("picture")) {
-                                        _item.picture = _item_object.get_string_member("picture");
-                                    }
-                                    if (_item_object.has_member("source")) {
-                                        _item.picture = _item_object.get_string_member("source");
-                                    }
-                                    _playList.items.append(_item);
-                                });
-                                
+                             
+                            if (members != null) {
+                                members.foreach((member_name) => {
+                                    PlaylistObject? _playList = new PlaylistObject();
+                                    var object = _playlists.get_member(member_name).get_object();
 
-                                playlists.append(_playList);
-                            });
-                        }
+                                    if (object != null) {
+                                        
+                                        _playList.name = member_name;
+                                        // TODO: ADD PROPERTIES _playList.properties = whatever
+                                        // TODO: fix item iterator, it is invalid as it calls on each member, not each "object"
+                                        Json.Object? items_object = null;
+                                        if (object.has_member("items")) {
+                                            items_object = object.get_object_member("items");
+                                        }
+                                        if (items_object != null) {
+                                        var items_list = items_object.get_members();
+                                            items_list.foreach((item) => {
+                                                PlaylistItem _item = new PlaylistItem();
+                                                var _item_object = items_object.get_object_member(item);
+                                                _item.item_type = _item_object.get_int_member("item_type");
+                                                _item.name = _item_object.get_string_member("name");
+                                                _item.file = _item_object.get_string_member("file");
+                                                if (_item_object.has_member("picture")) {
+                                                    _item.picture = _item_object.get_string_member("picture");
+                                                }
+                                                if (_item_object.has_member("source")) {
+                                                    _item.picture = _item_object.get_string_member("source");
+                                                }
+                                                _playList.items.append(_item);
+                                            });
+                                        }
+                                    }
+
+                                    playlists.append(_playList);
+                                }); 
+                            } 
+                        } 
                     }
                     loaded();
 

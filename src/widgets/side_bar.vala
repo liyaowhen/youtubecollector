@@ -60,7 +60,7 @@ namespace Song {
             vexpand_set = true;
             hexpand_set = true;
 
-            PlaylistObject initial_playlist;
+            PlaylistObject? initial_playlist = null;
 
             /*var playlist_names = settings.get_strv("playlists");
             foreach (string _name in playlist_names) {
@@ -75,23 +75,33 @@ namespace Song {
             Config config = Config.get_instance();
             
             bool firstDeclared = false;
-            config.playlists.foreach((_playlist) => {
-                var button = new PlaylistButton(_playlist);
-                if (!firstDeclared) {initial_playlist = _playlist; firstDeclared = true;}
-
-                playlist_buttons.add(button);
-                append(button);
-            });
-
-            config.config_changed.connect(() => {
-                playlist_buttons.clear();
-                config.playlists.foreach((_playlist) => {
+            if (config.playlists != null) {
+                foreach (PlaylistObject _playlist in config.playlists) {
                     var button = new PlaylistButton(_playlist);
+                    if (!firstDeclared) {initial_playlist = _playlist; firstDeclared = true;}
     
                     playlist_buttons.add(button);
                     append(button);
-                });
-            });
+                }
+            }
+
+
+            print("\n aaaaaa" + playlist_buttons.size.to_string() + "\n");
+
+            config.config_changed.connect(() => {
+                foreach (PlaylistButton e in playlist_buttons) {
+                    print("\n" + e.playlist.name + "eee");
+                    e.destroy();
+                }
+                if (config.playlists != null) {
+                    config.playlists.foreach((_playlist) => {
+                        var button = new PlaylistButton(_playlist);
+        
+                        playlist_buttons.add(button);
+                        append(button);
+                    }); 
+                }
+            }); 
 
             Timeout.add(1000, () => {
                 if (playlist_buttons == null) {
@@ -105,9 +115,10 @@ namespace Song {
             //print("sidbar requesting main_view_content switch to playlist of name:\n" + playlists.nth_data(0).name);
             Timeout.add(1, () => {
                 if (SongController.main_view_content != null) {
-                    SongController.main_view_content.change_page(initial_playlist);
-                    return false;
-
+                    if (initial_playlist != null) {
+                        SongController.main_view_content.change_page(initial_playlist);
+                        return false;
+                    }
                 }
                 return true;
             }, 1);
@@ -163,16 +174,17 @@ namespace Song {
                         print("\n sidebar buttons are null");
                     }
                     if (i.get_active()) {
-                        sidebar_content.playlist_buttons.foreach((e) => {
+                        foreach (PlaylistButton e in sidebar_content.playlist_buttons) {
                             e.enter_removal_mode();
-                            print(e.name);
-                        });
+                            print(e.playlist.name);
+                        }
                     } else {
-                        sidebar_content.playlist_buttons.foreach((e) => {
+                        foreach (PlaylistButton e in sidebar_content.playlist_buttons) {
                             e.exit_removal_mode();
-                            print(e.name);
-                        });
+                            print(e.playlist.name);
+                        }
                     }
+                    print("\n" + sidebar_content.playlist_buttons.size.to_string() + "\n");
                 });
                 
 

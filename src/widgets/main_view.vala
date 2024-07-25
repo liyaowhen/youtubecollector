@@ -86,11 +86,13 @@ namespace Song {
 
             var config = Config.get_instance();
             config.config_changed.connect(() => {
-                if (config.playlists.length() == 1) {
-                    config.playlists.foreach((i) => {
-                        change_page(i);
-                        return;
-                    });
+                if (config.playlists != null) {
+                    if (config.playlists.length() == 1) {
+                        config.playlists.foreach((i) => {
+                            change_page(i);
+                            return;
+                        });
+                    }
                 }
             });
         }

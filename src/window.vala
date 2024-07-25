@@ -5,6 +5,7 @@ namespace Song {
         private Settings settings = new Settings ("com.liyaowhen.Song");
         public SideBar sidebar;
         public MainView main_view;
+        public Gtk.ShortcutAction ctrl_z = new Gtk.SignalAction("ctrl_z");
 
         public Window (Gtk.Application app) {
             Object (application: app);
@@ -69,6 +70,11 @@ namespace Song {
             var _content = new Adw.ToolbarView ();
             _content.add_top_bar (title_bar);
             _content.set_content (split_view);
+            
+            var controller = new Gtk.ShortcutController();
+            Gtk.ShortcutTrigger trigger = Gtk.ShortcutTrigger.parse_string("<Control>Z");
+            controller.add_shortcut(new Gtk.Shortcut(trigger, ctrl_z));
+            add_controller(new Gtk.ShortcutController());
 
             
             collapse_button.clicked.connect(() => {

@@ -3,7 +3,7 @@ namespace Song {
 
         private Settings settings = new Settings ("com.liyaowhen.Song");
         
-        private PlaylistObject playlist;
+        public PlaylistObject playlist;
         private Gtk.Button remove_button;
         private Gtk.Revealer remove_button_revealer;
 
@@ -13,9 +13,16 @@ namespace Song {
         }
 
         construct {
+
+
             orientation = Gtk.Orientation.HORIZONTAL;
             add_css_class("toolbar");
             remove_button = new Gtk.Button.from_icon_name("app-remove-symbolic");
+
+            remove_button.clicked.connect(() => {
+                print("clicked");
+                confirm_delete_popup();
+            });
 
             remove_button_revealer = new Gtk.Revealer();
             remove_button_revealer.set_child(remove_button);
@@ -39,6 +46,7 @@ namespace Song {
                 if (playlist.name != null) {
                     main_button.label = playlist.name;
                 }
+
             });
 
             Config.get_instance().loaded.connect(() => {
@@ -59,6 +67,30 @@ namespace Song {
 
         public void exit_removal_mode() {
             remove_button_revealer.set_reveal_child(false);
+        }
+
+        private void confirm_delete_popup() {
+            
+            
+            var alert_dialog = new Adw.AlertDialog("Remove Playlist?",
+            "Deleting a playlist is a non-reversable action,
+                however the playlist's items will remain intact in the configuration folder");
+            
+            alert_dialog.add_response("Cancel", "Cancel");
+            alert_dialog.add_response("Confirm", "Confirm");
+            alert_dialog.set_response_appearance("Confirm", Adw.ResponseAppearance.DESTRUCTIVE);
+
+            alert_dialog.present(this);
+
+            
+            alert_dialog.response.connect((i, e) => {
+                if (e == "Confirm") {
+                    Config.get_instance().playlists.remove(playlist);
+                    Config.get_instance().save.begin();
+                }
+            });
+            
+            
         }
     }
 }
