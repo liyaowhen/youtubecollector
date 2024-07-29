@@ -19,6 +19,7 @@ namespace Song {
             var toolbar_view = new Adw.ToolbarView();
 
             var scroll_box = new Gtk.ScrolledWindow();
+            scroll_box.hscrollbar_policy = Gtk.PolicyType.NEVER;
             side_bar_content = new SideBarContent ();
             side_bar_content.set_vexpand (true);
             side_bar_content.set_hexpand (true);

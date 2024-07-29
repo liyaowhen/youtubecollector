@@ -21,6 +21,7 @@ song_deps = [
   dependency('json-glib-1.0'),
   dependency('gstreamer-1.0'),
   dependency('gee-0.8'),
+  dependency('libpanel-1'),
 ]
 
 song_sources += gnome.compile_resources('song-resources',

@@ -1,7 +1,6 @@
 namespace Song {
     public class PlaylistButton : Gtk.Box {
 
-        private Settings settings = new Settings ("com.liyaowhen.Song");
         
         public PlaylistObject playlist;
         private Gtk.Button remove_button;
@@ -13,7 +12,6 @@ namespace Song {
         }
 
         construct {
-
 
             orientation = Gtk.Orientation.HORIZONTAL;
             add_css_class("toolbar");
@@ -34,6 +32,7 @@ namespace Song {
             main_button.hexpand = true;
             append(main_button);
             append(remove_button_revealer);
+            main_button.can_shrink = true;
 
             hexpand = true;
 
