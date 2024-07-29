@@ -100,21 +100,9 @@ namespace Song {
         public void change_page(PlaylistObject playlist) {
             print("change page called");
 
-            current_playlist = playlist;
+            if (current_playlist == playlist) return;
 
-            /*string[] songs = settings.get_strv(playlist_name);
-            print("\n playlist contains: \n" + songs[1]);
-            if (songs.length == 1) {
-                if (songs[0] == "") {empty_playlist_ui(playlist_name); return;}
-                else {
-                    //
-                }
-            } else if (songs.length > 1) {
-                if (songs[1] != null) {
-                    print("making a page with actual content");
-                    playlist_ui(playlist_name);
-                }
-            }*/
+            current_playlist = playlist;
 
             if (playlist.items.is_empty()) {
                 empty_playlist_ui(playlist);
