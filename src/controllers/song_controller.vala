@@ -12,6 +12,8 @@ namespace Song {
 
         public static MainViewContent main_view_content; // main view content should avoid using this controller during instanciation
         public static SideBarContent sidebar_content;
+        public static SideBar side_bar;
+        public static Adw.OverlaySplitView split_view;
 
         public static SongControls song_controls;
 

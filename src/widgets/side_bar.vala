@@ -8,6 +8,8 @@ namespace Song {
         public SideBarContent side_bar_content;
         public SideBarControls side_bar_controls;
 
+        public signal void collapsing();
+        // unify the signals for sidebar and maincontent collapsing in a singleton song controller
 
 
         public SideBar(Window _window) {
@@ -15,8 +17,27 @@ namespace Song {
         }
 
         construct {
+            SongController.side_bar = this;
 
             var toolbar_view = new Adw.ToolbarView();
+
+            var collapse_button = new Gtk.Button.from_icon_name ("folder-open-symbolic");
+            collapse_button.clicked.connect(() => {
+                if(SongController.split_view.get_collapsed ()){
+                    SongController.split_view.set_collapsed (false);
+                    collapse_button.set_icon_name("folder-open-symbolic");
+                } else {
+                    SongController.split_view.set_collapsed(true);
+                    collapse_button.set_icon_name("folder-symbolic");
+                }        
+                collapsing();
+            });    
+            var header_bar = new Adw.HeaderBar();
+            header_bar.margin_top = 5;
+            header_bar.show_title = false;
+            header_bar.show_start_title_buttons = false;
+            header_bar.show_end_title_buttons = false;
+            header_bar.pack_start(collapse_button);
 
             var scroll_box = new Gtk.ScrolledWindow();
             scroll_box.hscrollbar_policy = Gtk.PolicyType.NEVER;
@@ -28,6 +49,7 @@ namespace Song {
             side_bar_controls = new SideBarControls (side_bar_content);
             side_bar_controls.set_hexpand (true);
 
+            toolbar_view.add_top_bar(header_bar);
             toolbar_view.set_content(scroll_box);
             toolbar_view.add_bottom_bar(side_bar_controls);
 

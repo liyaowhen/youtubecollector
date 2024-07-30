@@ -21,7 +21,37 @@ namespace Song {
                 scrollable.hexpand = true;
                 scrollable.hexpand_set = true;
 
-                var action_bar = new MainViewActionBar (main_content);
+                var collapse_button_revealer = new Gtk.Revealer();
+                var collapse_button = new Gtk.Button.from_icon_name ("folder-symbolic");
+                
+                collapse_button.valign = Gtk.Align.CENTER;
+                collapse_button_revealer.set_child(collapse_button);
+                collapse_button_revealer.transition_type = Gtk.RevealerTransitionType.SLIDE_RIGHT;
+                var action_bar = new Adw.HeaderBar();
+                action_bar.show_back_button = false;
+                action_bar.title_widget = new YtSearchBar();
+                action_bar.pack_start(collapse_button_revealer);
+                collapse_button.clicked.connect(() => {
+                    if(SongController.split_view.get_collapsed ()){
+                        SongController.split_view.set_collapsed (false);
+                        collapse_button_revealer.set_reveal_child(false);
+                    } else {
+                        SongController.split_view.set_collapsed(true);
+                        action_bar.margin_start = -5;
+                    }
+                });
+
+                Timeout.add(1, () => {
+                    if (SongController.side_bar != null) {
+                        SongController.side_bar.collapsing.connect(() => {
+                            collapse_button_revealer.set_reveal_child(true);
+                            action_bar.margin_start = 5;
+                        });
+                        return false;
+                    }
+                    return true;
+                });
+
                 
                 var controls = new SongControls();
 
@@ -38,23 +68,20 @@ namespace Song {
     }
 
     public class MainViewActionBar : Gtk.Box {
-        private Gtk.ActionBar action_bar;
         private MainViewContent main_view;
+        private YtSearchBar yt_search_bar;
 
         public MainViewActionBar (MainViewContent _main_view) {
             this.main_view = _main_view;
         }
 
         construct {
+
+
             orientation = Gtk.Orientation.HORIZONTAL;
-            action_bar = new Gtk.ActionBar();
-
-
-
-
-            action_bar.vexpand = true;
-            action_bar.hexpand = true;
-            append(action_bar);
+            hexpand = true;
+            halign = Gtk.Align.FILL;
+            yt_search_bar.hexpand = true;
 
 
         }

@@ -11,7 +11,8 @@ song_sources = [
   'widgets/music_list_row.vala',
   'widgets/song_controls.vala',
   'playlist_object.vala',
-  'widgets/new_playlist_popover.vala'
+  'widgets/new_playlist_popover.vala',
+  'widgets/yt_search.vala',
 ]
 
 song_deps = [

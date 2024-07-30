@@ -28,7 +28,6 @@ namespace Song {
         // UI
             var title_bar = new Adw.HeaderBar ();
             //title_bar.set_decoration_layout("icon:close");
-            title_bar.show_title = false;
 
             var add_playlist = new Gtk.Button();
             var add_playlist_content = new Adw.ButtonContent();
@@ -51,24 +50,29 @@ namespace Song {
                 new_music_popover_show();
             });
 
+            var yt_search_bar = new YtSearchBar();
             var collapse_button = new Gtk.Button.from_icon_name ("folder-open-symbolic");
             title_bar.pack_start (collapse_button);
             title_bar.pack_start(add_playlist);
             title_bar.pack_start(add_button);
+            title_bar.title_widget = yt_search_bar;
            
 
             
             main_view = new MainView(this);
             sidebar = new SideBar(this);
 
-            var split_view = new Adw.NavigationSplitView ();
+            var split_view = new Adw.OverlaySplitView ();
             split_view.set_sidebar (sidebar);
             split_view.set_content(main_view);
-            split_view.show_content = true;
+            split_view.collapsed = false;
+            SongController.split_view = split_view;
+            
             
 
             var _content = new Adw.ToolbarView ();
-            _content.add_top_bar (title_bar);
+            //_content.add_top_bar (title_bar);
+            //TODO: reimplement top bar
             _content.set_content (split_view);
             
             var controller = new Gtk.ShortcutController();
@@ -87,7 +91,7 @@ namespace Song {
                 }
             });
 
-            
+
             set_content(_content);
 
             
