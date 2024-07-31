@@ -15,7 +15,7 @@ namespace Song {
 
             orientation = Gtk.Orientation.HORIZONTAL;
             add_css_class("toolbar");
-            remove_button = new Gtk.Button.from_icon_name("app-remove-symbolic");
+            remove_button = new Gtk.Button.from_icon_name("entry-clear-outline-symbolic");
 
             remove_button.clicked.connect(() => {
                 print("clicked");

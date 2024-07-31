@@ -25,27 +25,45 @@ namespace Song {
                 var collapse_button = new Gtk.Button.from_icon_name ("folder-symbolic");
                 
                 collapse_button.valign = Gtk.Align.CENTER;
-                collapse_button_revealer.set_child(collapse_button);
-                collapse_button_revealer.transition_type = Gtk.RevealerTransitionType.SLIDE_RIGHT;
+
+                var add_button = new Gtk.Button();
+                var add_button_content = new Adw.ButtonContent ();
+                add_button_content.set_icon_name("applications-multimedia-symbolic");
+                add_button_content.set_label("Add Item");
+                add_button.set_child(add_button_content);
+                add_button.valign = Gtk.Align.CENTER;
+
+                add_button.clicked.connect(() => {
+                    var popover = new NewMusicPopover();
+                    popover.present(this);
+                });
+
                 var action_bar = new Adw.HeaderBar();
                 action_bar.show_back_button = false;
                 action_bar.title_widget = new YtSearchBar();
-                action_bar.pack_start(collapse_button_revealer);
+                action_bar.pack_start(collapse_button);
+                action_bar.pack_start(add_button);
+                action_bar.margin_start = 5;
+
                 collapse_button.clicked.connect(() => {
                     if(SongController.split_view.get_collapsed ()){
-                        SongController.split_view.set_collapsed (false);
-                        collapse_button_revealer.set_reveal_child(false);
+                        SongController.split_view.show_sidebar = false;
+                        collapse_button.visible = true;
                     } else {
-                        SongController.split_view.set_collapsed(true);
-                        action_bar.margin_start = -5;
+                        SongController.split_view.show_sidebar = true;
+                        collapse_button.visible = false;
+
                     }
                 });
 
                 Timeout.add(1, () => {
-                    if (SongController.side_bar != null) {
+                    if (SongController.side_bar != null && SongController.split_view != null) {
+                        if (SongController.split_view.get_show_sidebar()) {
+                            collapse_button.visible = false;
+                        } else collapse_button.visible = true;
                         SongController.side_bar.collapsing.connect(() => {
-                            collapse_button_revealer.set_reveal_child(true);
-                            action_bar.margin_start = 5;
+                            collapse_button.visible = true;
+
                         });
                         return false;
                     }

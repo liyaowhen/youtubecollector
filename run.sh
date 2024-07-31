@@ -4,10 +4,13 @@
 # ninja -C builddir clean
 
 # Set up Meson build directory
-meson setup builddir --buildtype=debug
+meson setup build --buildtype=debug
 
 # Build the project
-ninja -C builddir
+meson compile -C build
+
+# Install project
+meson install -C build
 
 # Run the executable
 song

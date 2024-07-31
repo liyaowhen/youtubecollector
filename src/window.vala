@@ -82,7 +82,7 @@ namespace Song {
 
             
             collapse_button.clicked.connect(() => {
-                if(split_view.get_collapsed ()){
+                if(split_view.get_show_sidebar ()){
                     split_view.set_collapsed (false);
                     collapse_button.set_icon_name("folder-open-symbolic");
                 } else {
@@ -94,6 +94,8 @@ namespace Song {
 
             set_content(_content);
 
+
+            
             
         }
 

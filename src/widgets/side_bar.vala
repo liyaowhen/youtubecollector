@@ -23,21 +23,31 @@ namespace Song {
 
             var collapse_button = new Gtk.Button.from_icon_name ("folder-open-symbolic");
             collapse_button.clicked.connect(() => {
-                if(SongController.split_view.get_collapsed ()){
-                    SongController.split_view.set_collapsed (false);
+                if(SongController.split_view.get_show_sidebar()){
+                    SongController.split_view.show_sidebar = false;
                     collapse_button.set_icon_name("folder-open-symbolic");
                 } else {
-                    SongController.split_view.set_collapsed(true);
+                    SongController.split_view.show_sidebar = true;
                     collapse_button.set_icon_name("folder-symbolic");
                 }        
                 collapsing();
             });    
+
+            var add_button = new Gtk.Button.from_icon_name("bookmark-new-symbolic");
+
+            add_button.clicked.connect(() => {
+                var popover = new NewPlaylistPopover();
+                popover.present(this);
+            });
+
             var header_bar = new Adw.HeaderBar();
             header_bar.margin_top = 5;
+            header_bar.margin_start = 5;
             header_bar.show_title = false;
             header_bar.show_start_title_buttons = false;
             header_bar.show_end_title_buttons = false;
             header_bar.pack_start(collapse_button);
+            header_bar.pack_start(add_button);
 
             var scroll_box = new Gtk.ScrolledWindow();
             scroll_box.hscrollbar_policy = Gtk.PolicyType.NEVER;
