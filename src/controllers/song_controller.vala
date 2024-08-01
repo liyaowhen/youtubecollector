@@ -3,7 +3,6 @@ using Gtk;
 namespace Song {
 
 
-    public delegate void EventQueue();
     /* to ensure that doing things on the main_view_content or sidebar_content
     in this SongController allows for those objects to exist, instead of 
     doing functions related to this controller in the bare construct {},
@@ -14,6 +13,7 @@ namespace Song {
         public static SideBarContent sidebar_content;
         public static SideBar side_bar;
         public static Adw.OverlaySplitView split_view;
+        public static MainView main_view;
 
         public static SongControls song_controls;
 
@@ -21,6 +21,19 @@ namespace Song {
         
         public static Adw.ToastOverlay toast_overlay = new Adw.ToastOverlay();
         
+    }
+
+    public class SignalHub : Object {
+        private static SignalHub? instance = null;
+
+        public signal void mouse_clicked();
+
+        public static SignalHub get_instance () {
+            if (instance == null) {
+                instance = new SignalHub();
+            }
+            return instance;
+        }
     }
 
     

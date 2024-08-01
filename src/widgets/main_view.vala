@@ -5,12 +5,17 @@ namespace Song {
         public Settings settings = new Settings("com.liyaowhen.Song.playlists");
         public MainViewContent main_content;
         public PlaylistObject current_playlist;
+        private Gtk.Revealer add_button_revealer = new Gtk.Revealer();
+
+        public signal void enter_yt_search_mode();
+        public signal void exit_yt_search_mode();
 
         public MainView(Window _window) {
             this.window = _window;
         }
 
         construct {
+            SongController.main_view = this;
 
             // make ui
                 var toolbar_view = new Adw.ToolbarView ();
@@ -32,6 +37,9 @@ namespace Song {
                 add_button_content.set_label("Add Item");
                 add_button.set_child(add_button_content);
                 add_button.valign = Gtk.Align.CENTER;
+                add_button_revealer.set_child(add_button);
+                add_button_revealer.set_reveal_child(true);
+                add_button_revealer.transition_type = Gtk.RevealerTransitionType.SLIDE_RIGHT;
 
                 add_button.clicked.connect(() => {
                     var popover = new NewMusicPopover();
@@ -42,7 +50,7 @@ namespace Song {
                 action_bar.show_back_button = false;
                 action_bar.title_widget = new YtSearchBar();
                 action_bar.pack_start(collapse_button);
-                action_bar.pack_start(add_button);
+                action_bar.pack_start(add_button_revealer);
                 action_bar.margin_start = 5;
 
                 collapse_button.clicked.connect(() => {
@@ -80,6 +88,18 @@ namespace Song {
                 this.child = toolbar_view;
                 this.title = "main_view";
 
+                instanciate_signals();
+                
+        }
+
+        private void instanciate_signals() {
+            enter_yt_search_mode.connect(() => {
+                add_button_revealer.set_reveal_child(false);
+            });
+
+            exit_yt_search_mode.connect(() => {
+                add_button_revealer.set_reveal_child(true);
+            });
         }
 
 
@@ -101,7 +121,9 @@ namespace Song {
             halign = Gtk.Align.FILL;
             yt_search_bar.hexpand = true;
 
-
+            can_focus = true;
+            focusable = true;
+            focus_on_click = true;
         }
 
         public void new_music_popover_show() {

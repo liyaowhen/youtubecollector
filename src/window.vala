@@ -93,7 +93,14 @@ namespace Song {
 
             set_content(_content);
 
-            
+            var click_monitor = new Gtk.GestureClick ();
+            _content.add_controller(click_monitor);
+            click_monitor.set_propagation_phase(Gtk.PropagationPhase.CAPTURE);
+
+            var signal_hub = SignalHub.get_instance();
+            click_monitor.begin.connect(() => {
+                signal_hub.mouse_clicked();
+            });
         }
 
         public void new_music_popover_show() {
