@@ -13,6 +13,7 @@ song_sources = [
   'playlist_object.vala',
   'widgets/new_playlist_popover.vala',
   'widgets/yt_search.vala',
+  'background.vala',
 ]
 
 song_deps = [

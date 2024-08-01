@@ -91,11 +91,8 @@ namespace Song {
                 }
             });
 
-
             set_content(_content);
 
-
-            
             
         }
 
