@@ -5,9 +5,14 @@ namespace Song {
         NONE,
     }
 
+    public enum YtSearchViewStates {
+        SEARCHING,
+        IDLE,
+    }
+
     public class YtSearchBar : Gtk.Box {
 
-        private Gtk.SearchEntry search_entry = new Gtk.SearchEntry ();
+        public Gtk.SearchEntry search_entry = new Gtk.SearchEntry ();
         private MainViewActionBar container_parent;
         private Adw.Clamp search_clamp = new Adw.Clamp();
 
@@ -17,7 +22,7 @@ namespace Song {
         private YtSearchBarStates state = YtSearchBarStates.NONE;
         private bool isEnlarged = false;
 
-        private bool isMouseInside = false;
+        public bool isMouseInside = false;
         private YtSearchBarStates? requesting_state = null;
 
         private Adw.TimedAnimation? enlarge_animation = null;
@@ -54,15 +59,8 @@ namespace Song {
 
             instanciate_signals();
 
-            /*focus_event.enter.connect(() => {
-                enlarge();
-                SongController.main_view.enter_yt_search_mode();
-            });
-
-            focus_event.leave.connect(() => {
-                shrink();
-                SongController.main_view.exit_yt_search_mode();
-            });*/
+            var signal_hub = SignalHub.get_instance();
+            signal_hub.yt_search_bar = this;
         }
 
 
@@ -70,18 +68,18 @@ namespace Song {
             var signal_hub = SignalHub.get_instance();
             signal_hub.mouse_clicked.connect(() => {
                 if (!isMouseInside && isEnlarged) {
-                    shrink();
-                    SongController.main_view.exit_yt_search_mode();
+                    //shrink();
+                    //signal_hub.exit_yt_search_mode();
                 } else if (!isEnlarged && isMouseInside) {
                     enlarge();
-                    SongController.main_view.enter_yt_search_mode();
+                    signal_hub.enter_yt_search_mode();
                 } else if (!isEnlarged && !isMouseInside && state == YtSearchBarStates.ENLARGING) {
                     requesting_state = YtSearchBarStates.SHRINKING;
                     Timeout.add(1, () => {
                         if (requesting_state != YtSearchBarStates.SHRINKING) return false;
                         if (isEnlarged) {
                             shrink();
-                            SongController.main_view.exit_yt_search_mode();
+                            signal_hub.exit_yt_search_mode();
                             requesting_state = null;
                             return false;
                         }
@@ -93,13 +91,17 @@ namespace Song {
                         if (requesting_state != YtSearchBarStates.ENLARGING) return false;
                         if (!isEnlarged) {
                             enlarge();
-                            SongController.main_view.enter_yt_search_mode();
+                            signal_hub.enter_yt_search_mode();
                             requesting_state = null;
                             return false;
                         }
                         return true;
                     });
                 }
+            });
+
+            search_entry.changed.connect((i) => {
+                signal_hub.request_search(i.get_text());
             });
         }
 
@@ -131,4 +133,372 @@ namespace Song {
         }
     }
 
+    public class YtSearchView : Gtk.Box {
+
+        private Gtk.Label label = new Gtk.Label("");
+        private YtSearchViewStates state = YtSearchViewStates.IDLE;
+
+        private Cancellable active_search_query;
+        private Gee.HashSet<YtSearchItem> results = new Gee.HashSet<YtSearchItem>();
+        private Gee.HashSet<Gtk.Widget> result_widgets = new Gee.HashSet<Gtk.Widget>();
+
+        private Subprocess? search_process = null;
+
+        construct {
+
+            orientation = Gtk.Orientation.VERTICAL;
+            append(label);
+
+            instanciate_signals();
+
+            var yt_search_tmp = File.new_build_filename(Environment.get_tmp_dir(), "yt_search_tmp.json");
+            if (!yt_search_tmp.query_exists(null)) {
+                yt_search_tmp.create(FileCreateFlags.NONE, null);
+                print(yt_search_tmp.get_path());
+            }
+            print(yt_search_tmp.get_path());
+            print(Environment.get_tmp_dir());
+
+            var motion_sensor = new Gtk.EventControllerMotion();
+            get_parent().add_controller(motion_sensor);
+
+            var signal_hub = SignalHub.get_instance();
+            motion_sensor.leave.connect(() => {
+                signal_hub.yt_search_bar.isMouseInside = false;
+            });
+
+            motion_sensor.enter.connect(() => {
+                signal_hub.yt_search_bar.isMouseInside = true;
+            });
+        }
+
+        private void instanciate_signals() {
+            var signal_hub = SignalHub.get_instance();
+            signal_hub.request_search.connect((query) => {
+                search.begin(query);
+                state = YtSearchViewStates.SEARCHING;
+            });
+
+            label.label = signal_hub.yt_search_bar.search_entry.text;
+        }
+
+        private async void search(string query) {
+            label.label = query;
+            string temp_file = Path.build_path("/", Environment.get_tmp_dir(), "yt_search_tmp.json");
+
+            string[] command = {
+                "sh", 
+                "-c", 
+                "./song-search " +
+                query,
+                null
+            };
+            print("\n");
+            foreach(string s in command) {
+                print(s + " ");
+            }
+
+            MainLoop loop = new MainLoop ();
+            try {
+                GLib.Pid child_pid;
+                int std_out;
+                int std_input;
+                int std_error;
+
+
+                //TODO: remove ghost processes
+
+                /*Process.spawn_async_with_pipes(
+                    Environment.get_tmp_dir(), 
+                    command, 
+                    null, 
+                    GLib.SpawnFlags.SEARCH_PATH | GLib.SpawnFlags.DO_NOT_REAP_CHILD, 
+                    null, 
+                    out child_pid, 
+                    out std_input, 
+                    out std_out, 
+                    out std_error
+                );*/
+
+                /*Process.spawn_async_with_pipes(
+                    Environment.get_user_config_dir() + "/com.liyaowhen.Song", 
+                    command, 
+                    null, 
+                    GLib.SpawnFlags.SEARCH_PATH | GLib.SpawnFlags.DO_NOT_REAP_CHILD, 
+                    null, 
+                    out child_pid, 
+                    out std_input, 
+                    out std_out, 
+                    out std_error
+                );*/
+
+                if (search_process != null && !search_process.get_if_exited()) {
+                    search_process.force_exit();
+                }
+                try {
+                    search_process = new Subprocess(GLib.SubprocessFlags.STDIN_PIPE | GLib.SubprocessFlags.STDOUT_PIPE | GLib.SubprocessFlags.STDERR_PIPE, 
+                        Environment.get_user_config_dir() + "/com.liyaowhen.Song/search-utility", query);
+                } catch (GLib.Error e) {
+                    print(e.message);
+                }
+
+                try {
+                    search_process.communicate_utf8_async.begin(null, null, (obj, res) => {
+                        try {
+                            string? stdout_buff;
+                            string? stderr_buff;
+                            search_process.communicate_utf8_async.end (res, out stdout_buff, out stderr_buff);
+
+                            if (stdout_buff != null) {
+                                print ("STDOUT: %s\n", stdout_buff);
+                                read_json(stdout_buff);
+                            }
+
+                            if (stderr_buff != null) {
+                                print ("STDERR: %s\n", stderr_buff);
+                            }
+                        } catch (Error e) {
+                            print ("Error: %s\n", e.message);
+                        }
+                    });
+                } catch (GLib.Error e) {
+                    print(e.message);
+                }
+
+
+                //GLib.IOChannel stdout_channel = new IOChannel.unix_new(std_out);
+                StringBuilder output_buffer = new StringBuilder();
+
+                /*stdout_channel.add_watch(IOCondition.IN | IOCondition.HUP, (i, c) => {
+                    if (c == IOCondition.HUP) {
+                        if (cancellable.is_cancelled()) {
+                            //Process.close_pid(child_pid);
+                            loop.quit();
+                            return false;
+                        }
+                        read_json(cancellable, output_buffer.str);
+                        return false;
+                    }
+
+                    try {
+                        string line;
+                        i.read_line(out line, null, null);
+                        output_buffer.append(line);
+                    } catch (GLib.ConvertError e) {
+                        print("IOChannelError: %s\n", e.message);
+                    }
+
+                    return true;
+                });*/
+                
+                //IOChannel error = new IOChannel.unix_new (std_error);
+
+
+                /*error.add_watch(IOCondition.IN | IOCondition.HUP, (i, c) => {
+                    if (c == IOCondition.HUP) {
+                        return false;
+                    }
+                    try {
+                        string line;
+                        i.read_line(out line, null, null);
+
+                    } catch (GLib.ConvertError e) {
+                        print("IOChannelError: %s\n", e.message);
+                    }
+                    return true;
+                }); */
+
+                /*ChildWatch.add(child_pid, (pid, status) => {
+                    Process.close_pid (pid);
+                    loop.quit ();
+                    print("process ended");
+                    
+                }); */
+
+                loop.run();
+            } catch (GLib.SpawnError e) {
+                print(e.message);
+            }
+        }
+
+        private void read_json(string json) {
+            
+            results.clear();
+            try {
+                /*
+                    Json.Parser parser = new Json.Parser();
+                    parser.load_from_data(json, -1);
+                    Json.Node root = parser.get_root();
+                    Json.Object root_object = root.get_object();
+
+                    if (root_object.has_member("entries")) {
+                        var entries = root_object.get_array_member("entries");
+                        var entries_members = entries.get_elements();
+                        entries_members.foreach((i) => {
+                            var entry = i.get_object();
+                            YtSearchItem search_item = new YtSearchItem();
+                            if (entry.has_member("requested_downloads")) {
+                                //requested formats has 2 parts, the video and audio parts
+                                var requested_downloads = entry.get_array_member("requested_downloads");
+                                var requested_downloads_iterable = requested_downloads.get_elements();
+                                
+                                //has only one array item
+                                requested_downloads_iterable.foreach((e) => {
+                                    var requested_downloads_object = e.get_object();
+                                    if (requested_downloads_object.has_member("requested_formats")) {
+                                        var requested_formats = requested_downloads_object.get_array_member("requested_formats");
+                                        var requested_formats_iterable = requested_formats.get_elements();
+                                        //requested formats iterable hosts 2 objects, a video stream and audio stream object
+                                        
+                                        requested_formats_iterable.foreach((j) => {
+                                            var video_or_audio_object = j.get_object();
+                                            if (video_or_audio_object.has_member("audio_ext")) {
+                                                var audio_ext = video_or_audio_object.get_string_member("audio_ext");
+                                                if (audio_ext != "none") {
+                                                    // if object is audio
+                                                    search_item.audio_url = video_or_audio_object.get_string_member("url");
+                                                } else {
+                                                    // if object is video
+                                                    search_item.url = video_or_audio_object.get_string_member("url");
+                                                }
+                                            }
+                                        });
+                                    }
+                                });
+
+                            }
+                            if (entry.has_member("fulltitle")) {
+                                search_item.title = entry.get_string_member("fulltitle");
+                            }
+                            results.add(search_item);
+                            print("\n " + search_item.title);
+                        });
+                    }
+                    print("idle");
+                    state = YtSearchViewStates.IDLE;
+
+                    load_contents();
+                */
+                Json.Parser parser = new Json.Parser();
+                parser.load_from_data(json, -1);
+                Json.Node root = parser.get_root();
+                Json.Array root_object = root.get_array();
+                var root_object_iterable = root_object.get_elements();
+                results.clear();
+
+                root_object_iterable.foreach((i) => {
+                    var item = i.get_object();
+                    YtSearchItem search_item = new YtSearchItem();
+                    if (item.has_member("title")) {
+                        search_item.title = item.get_string_member("title");
+                    }
+                    if (item.has_member("url")) {
+                        search_item.url = item.get_string_member("url");
+                    }
+                    if (item.has_member("image")) {
+                        search_item.thumbnail_url = item.get_string_member("image");
+                    }
+                    results.add(search_item);
+                });
+                
+
+                /* 
+                if (root_object.has_member("entries")) {
+                    var entries = root_object.get_array_member("entries");
+                    var entries_members = entries.get_elements();
+                    entries_members.foreach((i) => {
+                        var entry = i.get_object();
+                        YtSearchItem search_item = new YtSearchItem();
+                        if (entry.has_member("requested_downloads")) {
+                            //requested formats has 2 parts, the video and audio parts
+                            var requested_downloads = entry.get_array_member("requested_downloads");
+                            var requested_downloads_iterable = requested_downloads.get_elements();
+                            
+                            //has only one array item
+                            requested_downloads_iterable.foreach((e) => {
+                                var requested_downloads_object = e.get_object();
+                                if (requested_downloads_object.has_member("requested_formats")) {
+                                    var requested_formats = requested_downloads_object.get_array_member("requested_formats");
+                                    var requested_formats_iterable = requested_formats.get_elements();
+                                    //requested formats iterable hosts 2 objects, a video stream and audio stream object
+                                    
+                                    requested_formats_iterable.foreach((j) => {
+                                        var video_or_audio_object = j.get_object();
+                                        if (video_or_audio_object.has_member("audio_ext")) {
+                                            var audio_ext = video_or_audio_object.get_string_member("audio_ext");
+                                            if (audio_ext != "none") {
+                                                // if object is audio
+                                                search_item.audio_url = video_or_audio_object.get_string_member("url");
+                                            } else {
+                                                // if object is video
+                                                search_item.url = video_or_audio_object.get_string_member("url");
+                                            }
+                                        }
+                                    });
+                                }
+                            });
+
+                        }
+                        if (entry.has_member("fulltitle")) {
+                            search_item.title = entry.get_string_member("fulltitle");
+                        }
+                        results.add(search_item);
+                        print("\n " + search_item.title);
+                    });
+                } */
+                print("idle");
+                state = YtSearchViewStates.IDLE;
+
+                load_contents();
+            } catch (Error e) {
+                print("Failed to parse JSON: %s\n", e.message);
+            }
+        }
+
+        private void load_contents() {
+            foreach (Gtk.Widget i in result_widgets) {
+                remove(i);
+                print("destroying widgets");
+            }
+            result_widgets.clear();
+            results.foreach((result) => {
+                var label = new Gtk.Label(result.title);
+                var link = new Gtk.LinkButton(result.url);
+                var thumbnail = new Gtk.Image();
+                thumbnail.hexpand = true;
+                thumbnail.hexpand_set = true;
+                thumbnail.vexpand = true;
+                thumbnail.vexpand_set = true;
+                thumbnail.icon_size = Gtk.IconSize.LARGE;
+                load_url_to_image(thumbnail, result.thumbnail_url);
+                var box = new Gtk.Box(Gtk.Orientation.VERTICAL, 5);
+                var options_box = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 5);
+                options_box.append(label);
+                box.append(thumbnail);
+                box.append(options_box);
+                append(box);
+                result_widgets.add(box);
+                return true;
+            });
+        }
+
+        private async void load_url_to_image (Gtk.Image? image, string url) {
+            Soup.Session session = new Soup.Session ();
+            Soup.Message message = new Soup.Message ("GET", url);
+
+            GLib.Bytes bytes = session.send_and_read(message, null);
+            var stream = new GLib.MemoryInputStream();
+            stream.add_bytes(bytes);
+            var pixbuf = new Gdk.Pixbuf.from_stream(stream, null);
+            if (image != null) {
+                image.set_from_pixbuf(pixbuf);
+            }
+        }
+    }
+
+    public class YtSearchItem : GLib.Object {
+        public string title = "";
+        public string url = "";
+        public string thumbnail_url = "";
+    }
 }

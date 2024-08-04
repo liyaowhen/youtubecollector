@@ -1,0 +1,8 @@
+_build
+builddir
+src/scripts/node_modules
+src/scripts/bun.lockb
+src/scripts/mycli
+src/scripts/search
+src/scripts/search-utility
+run.sh

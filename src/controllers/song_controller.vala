@@ -27,6 +27,11 @@ namespace Song {
         private static SignalHub? instance = null;
 
         public signal void mouse_clicked();
+        
+        public signal void enter_yt_search_mode();
+        public signal void exit_yt_search_mode();
+        public signal void request_search(string query);
+        public YtSearchBar yt_search_bar;
 
         public static SignalHub get_instance () {
             if (instance == null) {

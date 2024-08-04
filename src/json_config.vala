@@ -28,14 +28,14 @@
 namespace Song {
 
     public enum PlaylistType {
-        VIDEO_ONLY,
-        AUDIO_ONLY,
-        VIDEO_AND_AUDIO_COLLECTION,
+        VIDEO_ONLY = 0,
+        AUDIO_ONLY = 1,
+        VIDEO_AND_AUDIO_COLLECTION = 2,
     }
 
     public enum ItemType {
-        VIDEO,
-        AUDIO,
+        VIDEO = 0,
+        AUDIO = 1,
     }
 
     public class Config : GLib.Object {
@@ -56,7 +56,7 @@ namespace Song {
         }
 
         private Config() {
-            load();
+            load.begin();
         }
         
         private async void load() {
@@ -159,49 +159,49 @@ namespace Song {
                     foreach (PlaylistObject item in playlists) {
                         builder.set_member_name(item.name);
                         builder.begin_object();
+            
+                            // name
+                            builder.set_member_name("name");
+                            builder.add_string_value(item.name);
 
-                        // name
-                        builder.set_member_name("name");
-                        builder.add_string_value(item.name);
+                            // properties
+                            builder.set_member_name("properties");
+                            builder.begin_object();
+                            builder.end_object();
 
-                        // properties
-                        builder.set_member_name("properties");
-                        builder.begin_object();
-                        builder.end_object();
-
-                        // items
-                        builder.set_member_name("items");
-                        builder.begin_object();
-
-                        // foreach item
-                        item.items.foreach((e) => {
-                            builder.set_member_name(e.name);
+                            // items
+                            builder.set_member_name("items");
                             builder.begin_object();
 
-                            builder.set_member_name("name");
-                            builder.add_string_value("name");
+                                // foreach item
+                                item.items.foreach((e) => {
+                                    builder.set_member_name(e.name);
+                                    builder.begin_object();
 
-                            builder.set_member_name("item_type");
-                            builder.add_int_value(e.item_type);
+                                        builder.set_member_name("name");
+                                        builder.add_string_value("name");
 
-                            builder.set_member_name("file");
-                            builder.add_string_value(e.file);
+                                        builder.set_member_name("item_type");
+                                        builder.add_int_value(e.item_type);
 
-                            if (e.source != null) {
-                                builder.set_member_name("source");
-                                builder.add_string_value(e.source);
-                            }
+                                        builder.set_member_name("file");
+                                        builder.add_string_value(e.file);
 
-                            if (e.picture != null) {
-                                builder.set_member_name("picture");
-                                builder.add_string_value(e.picture);
-                            }
+                                        if (e.source != null) {
+                                            builder.set_member_name("source");
+                                            builder.add_string_value(e.source);
+                                        }
 
+                                        if (e.picture != null) {
+                                            builder.set_member_name("picture");
+                                            builder.add_string_value(e.picture);
+                                        }
+
+                                    builder.end_object();
+                                });
+
+                            // items end
                             builder.end_object();
-                        });
-
-                        // items end
-                        builder.end_object();
 
                         builder.end_object();
                     }

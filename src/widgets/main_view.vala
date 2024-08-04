@@ -6,9 +6,9 @@ namespace Song {
         public MainViewContent main_content;
         public PlaylistObject current_playlist;
         private Gtk.Revealer add_button_revealer = new Gtk.Revealer();
+        private Gtk.Revealer controls_revealer = new Gtk.Revealer();
 
-        public signal void enter_yt_search_mode();
-        public signal void exit_yt_search_mode();
+        
 
         public MainView(Window _window) {
             this.window = _window;
@@ -80,10 +80,13 @@ namespace Song {
 
                 
                 var controls = new SongControls();
+                controls_revealer.set_child(controls);
+                controls_revealer.set_reveal_child(true);
+                controls_revealer.transition_type = Gtk.RevealerTransitionType.SLIDE_UP;
 
                 toolbar_view.add_top_bar (action_bar);
                 toolbar_view.set_content(scrollable);
-                toolbar_view.add_bottom_bar (controls);
+                toolbar_view.add_bottom_bar (controls_revealer);
 
                 this.child = toolbar_view;
                 this.title = "main_view";
@@ -93,12 +96,15 @@ namespace Song {
         }
 
         private void instanciate_signals() {
-            enter_yt_search_mode.connect(() => {
+            var signal_hub = SignalHub.get_instance();
+            signal_hub.enter_yt_search_mode.connect(() => {
                 add_button_revealer.set_reveal_child(false);
+                controls_revealer.set_reveal_child(false);
             });
 
-            exit_yt_search_mode.connect(() => {
+            signal_hub.exit_yt_search_mode.connect(() => {
                 add_button_revealer.set_reveal_child(true);
+                controls_revealer.set_reveal_child(true);
             });
         }
 
@@ -137,6 +143,8 @@ namespace Song {
         private Adw.NavigationView navigation_view;
         public PlaylistObject current_playlist;
 
+        private Adw.NavigationPage? yt_search_page = null;
+
         public MainViewContent() {
             vexpand = true;
             hexpand = true;
@@ -162,6 +170,18 @@ namespace Song {
                     }
                 }
             });
+
+            var signal_hub = SignalHub.get_instance();
+            signal_hub.enter_yt_search_mode.connect(() => {
+                search_ui();
+            });
+            signal_hub.exit_yt_search_mode.connect(() => {
+                if (yt_search_page != null) {
+                    print("removing page");
+                    navigation_view.pop();
+                }
+            });
+
         }
 
         public void change_page(PlaylistObject playlist) {
@@ -187,6 +207,7 @@ namespace Song {
             empty_page.set_title("Empty Playlist " + playlist.name);
             empty_page.set_icon_name("edit-find-symbolic");
             empty_page.set_description("Click the button on the top left to add songs in this playlist.");
+
             navigation_view.push(parent_page);      
         }
 
@@ -198,7 +219,18 @@ namespace Song {
             load_music(playlist_page, playlist);
             
             var parent_page = new Adw.NavigationPage(playlist_page, playlist.name);
+
             navigation_view.push(parent_page);
+        }
+
+        private void search_ui() {
+            var yt_search_list = new YtSearchView();
+            var yt_search_list_container = new Gtk.ScrolledWindow();
+            yt_search_list_container.vexpand = true;
+            yt_search_list_container.set_child(yt_search_list);
+            yt_search_page = new Adw.NavigationPage(yt_search_list_container, "Searching...");
+
+            navigation_view.push(yt_search_page);
         }
 
         private void load_music(Adw.StatusPage page, PlaylistObject playlist) {
