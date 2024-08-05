@@ -66,41 +66,17 @@ namespace Song {
 
         private void instanciate_signals() {
             var signal_hub = SignalHub.get_instance();
-            signal_hub.mouse_clicked.connect(() => {
-                if (!isMouseInside && isEnlarged) {
-                    //shrink();
-                    //signal_hub.exit_yt_search_mode();
-                } else if (!isEnlarged && isMouseInside) {
-                    enlarge();
-                    signal_hub.enter_yt_search_mode();
-                } else if (!isEnlarged && !isMouseInside && state == YtSearchBarStates.ENLARGING) {
-                    requesting_state = YtSearchBarStates.SHRINKING;
-                    Timeout.add(1, () => {
-                        if (requesting_state != YtSearchBarStates.SHRINKING) return false;
-                        if (isEnlarged) {
-                            shrink();
-                            signal_hub.exit_yt_search_mode();
-                            requesting_state = null;
-                            return false;
-                        }
-                        return true;
-                    });
-                } else if (isEnlarged && isMouseInside && state == YtSearchBarStates.SHRINKING) {
-                    requesting_state = YtSearchBarStates.ENLARGING;
-                    Timeout.add(1, () => {
-                        if (requesting_state != YtSearchBarStates.ENLARGING) return false;
-                        if (!isEnlarged) {
-                            enlarge();
-                            signal_hub.enter_yt_search_mode();
-                            requesting_state = null;
-                            return false;
-                        }
-                        return true;
-                    });
-                }
-            });
 
             search_entry.changed.connect((i) => {
+                if (i.text != "") {
+                    if (state != YtSearchBarStates.ENLARGING && isEnlarged != true && requesting_state != YtSearchBarStates.ENLARGING) {
+                        enlarge();
+                        signal_hub.enter_yt_search_mode();
+                    }
+                } else {
+                    shrink();
+                    signal_hub.exit_yt_search_mode();
+                }
                 signal_hub.request_search(i.get_text());
             });
         }
@@ -135,19 +111,20 @@ namespace Song {
 
     public class YtSearchView : Gtk.Box {
 
-        private Gtk.Label label = new Gtk.Label("");
         private YtSearchViewStates state = YtSearchViewStates.IDLE;
 
         private Cancellable active_search_query;
         private Gee.HashSet<YtSearchItem> results = new Gee.HashSet<YtSearchItem>();
         private Gee.HashSet<Gtk.Widget> result_widgets = new Gee.HashSet<Gtk.Widget>();
+        private Gtk.FlowBox flow_box = new Gtk.FlowBox();
 
         private Subprocess? search_process = null;
 
         construct {
 
             orientation = Gtk.Orientation.VERTICAL;
-            append(label);
+            append(flow_box);
+            flow_box.set_max_children_per_line(4);
 
             instanciate_signals();
 
@@ -170,6 +147,11 @@ namespace Song {
             motion_sensor.enter.connect(() => {
                 signal_hub.yt_search_bar.isMouseInside = true;
             });
+
+            hexpand = true;
+            hexpand_set = true;
+            vexpand = true;
+            vexpand_set = true;
         }
 
         private void instanciate_signals() {
@@ -179,11 +161,11 @@ namespace Song {
                 state = YtSearchViewStates.SEARCHING;
             });
 
-            label.label = signal_hub.yt_search_bar.search_entry.text;
+            //label.label = signal_hub.yt_search_bar.search_entry.text;
         }
 
         private async void search(string query) {
-            label.label = query;
+            //label.label = query;
             string temp_file = Path.build_path("/", Environment.get_tmp_dir(), "yt_search_tmp.json");
 
             string[] command = {
@@ -200,11 +182,6 @@ namespace Song {
 
             MainLoop loop = new MainLoop ();
             try {
-                GLib.Pid child_pid;
-                int std_out;
-                int std_input;
-                int std_error;
-
 
                 //TODO: remove ghost processes
 
@@ -232,7 +209,7 @@ namespace Song {
                     out std_error
                 );*/
 
-                if (search_process != null && !search_process.get_if_exited()) {
+                if (search_process != null && search_process.get_identifier() != null) {
                     search_process.force_exit();
                 }
                 try {
@@ -464,35 +441,37 @@ namespace Song {
             results.foreach((result) => {
                 var label = new Gtk.Label(result.title);
                 var link = new Gtk.LinkButton(result.url);
-                var thumbnail = new Gtk.Image();
-                thumbnail.hexpand = true;
-                thumbnail.hexpand_set = true;
+                var thumbnail = new Gtk.Picture();
                 thumbnail.vexpand = true;
                 thumbnail.vexpand_set = true;
-                thumbnail.icon_size = Gtk.IconSize.LARGE;
-                load_url_to_image(thumbnail, result.thumbnail_url);
+                thumbnail.can_shrink = false;
+                load_url_to_image.begin(thumbnail, result.thumbnail_url);
                 var box = new Gtk.Box(Gtk.Orientation.VERTICAL, 5);
                 var options_box = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 5);
                 options_box.append(label);
-                box.append(thumbnail);
-                box.append(options_box);
-                append(box);
-                result_widgets.add(box);
+                var overlay = new Gtk.Overlay();
+                overlay.set_child(thumbnail);
+                overlay.add_overlay(options_box);
+                append(overlay);
+                result_widgets.add(overlay);
                 return true;
             });
         }
 
-        private async void load_url_to_image (Gtk.Image? image, string url) {
+        private async void load_url_to_image (Gtk.Picture? image, string url) {
             Soup.Session session = new Soup.Session ();
             Soup.Message message = new Soup.Message ("GET", url);
 
-            GLib.Bytes bytes = session.send_and_read(message, null);
-            var stream = new GLib.MemoryInputStream();
-            stream.add_bytes(bytes);
-            var pixbuf = new Gdk.Pixbuf.from_stream(stream, null);
-            if (image != null) {
-                image.set_from_pixbuf(pixbuf);
-            }
+            session.send_and_read_async.begin(message, 1, null, (o, object) => {
+                var bytes = session.send_and_read_async.end(object);
+                var stream = new GLib.MemoryInputStream();
+                stream.add_bytes(bytes);
+                var pixbuf = new Gdk.Pixbuf.from_stream(stream, null);
+                if (image != null) {
+                    image.set_pixbuf(pixbuf);
+                }
+            });
+
         }
     }
 
@@ -500,5 +479,26 @@ namespace Song {
         public string title = "";
         public string url = "";
         public string thumbnail_url = "";
+    }
+
+    public class ExpandableImage : Gtk.DrawingArea {
+        public Gdk.Pixbuf? pixbuf = null;
+
+        public ExpandableImage () {
+            var frame = new Gtk.Frame(null);
+
+            this.set_draw_func((drawing_area, cairo_context, i) => {
+                if (pixbuf != null) {
+                    Gdk.cairo_set_source_pixbuf(cairo_context, pixbuf, 0, 0);
+                } else {
+                    cairo_context.set_source_rgb(200, 200, 200);
+                }
+                cairo_context.paint();
+            });
+
+            queue_draw();
+        }
+
+
     }
 }

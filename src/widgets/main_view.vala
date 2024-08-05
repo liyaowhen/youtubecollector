@@ -7,6 +7,8 @@ namespace Song {
         public PlaylistObject current_playlist;
         private Gtk.Revealer add_button_revealer = new Gtk.Revealer();
         private Gtk.Revealer controls_revealer = new Gtk.Revealer();
+        private Gtk.Revealer exit_yt_search_mode_revealer = new Gtk.Revealer();
+        private Adw.HeaderBar action_bar;
 
         
 
@@ -46,11 +48,22 @@ namespace Song {
                     popover.present(this);
                 });
 
-                var action_bar = new Adw.HeaderBar();
+                var exit_yt_search_mode = new Gtk.Button.from_icon_name("go-previous-symbolic");
+                exit_yt_search_mode.valign = Gtk.Align.CENTER;
+                exit_yt_search_mode_revealer.set_child(exit_yt_search_mode);
+                exit_yt_search_mode_revealer.set_reveal_child(false);
+                exit_yt_search_mode_revealer.transition_type = Gtk.RevealerTransitionType.SLIDE_RIGHT;
+
+                exit_yt_search_mode.clicked.connect(() => {
+                    SignalHub.get_instance().exit_yt_search_mode();
+                });
+
+                action_bar = new Adw.HeaderBar();
                 action_bar.show_back_button = false;
                 action_bar.title_widget = new YtSearchBar();
                 action_bar.pack_start(collapse_button);
                 action_bar.pack_start(add_button_revealer);
+                action_bar.pack_start(exit_yt_search_mode_revealer);
                 action_bar.margin_start = 5;
 
                 collapse_button.clicked.connect(() => {
@@ -100,11 +113,16 @@ namespace Song {
             signal_hub.enter_yt_search_mode.connect(() => {
                 add_button_revealer.set_reveal_child(false);
                 controls_revealer.set_reveal_child(false);
+                exit_yt_search_mode_revealer.set_reveal_child(true);
+                action_bar.set_margin_start(-5);
+                
             });
 
             signal_hub.exit_yt_search_mode.connect(() => {
                 add_button_revealer.set_reveal_child(true);
                 controls_revealer.set_reveal_child(true);
+                exit_yt_search_mode_revealer.set_reveal_child(false);
+                action_bar.set_margin_start(0);
             });
         }
 
