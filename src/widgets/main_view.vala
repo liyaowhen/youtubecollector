@@ -242,12 +242,13 @@ namespace Song {
         }
 
         private void search_ui() {
-            var yt_search_list = new YtSearchView();
-            var yt_search_list_container = new Gtk.ScrolledWindow();
-            yt_search_list_container.vexpand = true;
-            yt_search_list_container.set_child(yt_search_list);
-            yt_search_page = new Adw.NavigationPage(yt_search_list_container, "Searching...");
-
+            if (yt_search_page == null) {
+                var yt_search_list = YtSearchView.get_instance();
+                var yt_search_list_container = new Gtk.ScrolledWindow();
+                yt_search_list_container.vexpand = true;
+                yt_search_list_container.set_child(yt_search_list);
+                yt_search_page = new Adw.NavigationPage(yt_search_list_container, "Searching...");
+            }
             navigation_view.push(yt_search_page);
         }
 
@@ -260,7 +261,18 @@ namespace Song {
                 }
             }*/
             playlist.items.foreach((item) => {
-                content.append(new MusicListRow(item));
+                MusicListRow i = new MusicListRow(item);
+                content.append(i);
+
+            });
+            var config = Config.get_instance();
+            config.config_changed.connect(() => {
+                content.remove_all();
+                playlist.items.foreach((item) => {
+                    MusicListRow i = new MusicListRow(item);
+                    content.append(i);
+        
+                });
             });
             clamp.child = content;
             page.child = clamp;

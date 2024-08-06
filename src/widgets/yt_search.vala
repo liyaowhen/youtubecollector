@@ -113,18 +113,32 @@ namespace Song {
 
         private YtSearchViewStates state = YtSearchViewStates.IDLE;
 
-        private Cancellable active_search_query;
         private Gee.HashSet<YtSearchItem> results = new Gee.HashSet<YtSearchItem>();
         private Gee.HashSet<Gtk.Widget> result_widgets = new Gee.HashSet<Gtk.Widget>();
-        private Gtk.FlowBox flow_box = new Gtk.FlowBox();
 
         private Subprocess? search_process = null;
+
+        private static YtSearchView? search_view = null;
+
+        public static YtSearchView get_instance() {
+            if (search_view == null) {
+                search_view = new YtSearchView();
+            }
+            return search_view;
+        }
+
+        private YtSearchView () {
+            
+        }
 
         construct {
 
             orientation = Gtk.Orientation.VERTICAL;
-            append(flow_box);
-            flow_box.set_max_children_per_line(4);
+            spacing = 15;
+
+            append(new Gtk.Label("Youtube Search"));
+
+
 
             instanciate_signals();
 
@@ -165,6 +179,9 @@ namespace Song {
         }
 
         private async void search(string query) {
+
+            if (query == "" | query.length == 0) return;
+
             //label.label = query;
             string temp_file = Path.build_path("/", Environment.get_tmp_dir(), "yt_search_tmp.json");
 
@@ -244,7 +261,6 @@ namespace Song {
 
 
                 //GLib.IOChannel stdout_channel = new IOChannel.unix_new(std_out);
-                StringBuilder output_buffer = new StringBuilder();
 
                 /*stdout_channel.add_watch(IOCondition.IN | IOCondition.HUP, (i, c) => {
                     if (c == IOCondition.HUP) {
@@ -376,6 +392,7 @@ namespace Song {
                         search_item.thumbnail_url = item.get_string_member("image");
                     }
                     results.add(search_item);
+                    
                 });
                 
 
@@ -439,12 +456,13 @@ namespace Song {
             }
             result_widgets.clear();
             results.foreach((result) => {
-                var label = new Gtk.Label(result.title);
+                /*var label = new Gtk.Label(result.title);
                 var link = new Gtk.LinkButton(result.url);
                 var thumbnail = new Gtk.Picture();
                 thumbnail.vexpand = true;
                 thumbnail.vexpand_set = true;
-                thumbnail.can_shrink = false;
+                //thumbnail.can_shrink = false;
+                thumbnail.content_fit = Gtk.ContentFit.COVER;
                 load_url_to_image.begin(thumbnail, result.thumbnail_url);
                 var box = new Gtk.Box(Gtk.Orientation.VERTICAL, 5);
                 var options_box = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 5);
@@ -452,8 +470,17 @@ namespace Song {
                 var overlay = new Gtk.Overlay();
                 overlay.set_child(thumbnail);
                 overlay.add_overlay(options_box);
-                append(overlay);
-                result_widgets.add(overlay);
+                var frame = new Gtk.AspectFrame(0.5f, 0.5f, 16/9, false);
+                frame.set_child(overlay);
+                frame.halign = Gtk.Align.START;*/
+                var thumbnail = new Gtk.Picture();
+                thumbnail.vexpand = true;
+                thumbnail.vexpand_set = true;
+                load_url_to_image.begin(thumbnail, result.thumbnail_url);
+                var row = new YtSearchItemWidget(thumbnail, result);
+                append(row);
+                result_widgets.add(row);
+                print("search_item added");
                 return true;
             });
         }
@@ -481,24 +508,51 @@ namespace Song {
         public string thumbnail_url = "";
     }
 
-    public class ExpandableImage : Gtk.DrawingArea {
-        public Gdk.Pixbuf? pixbuf = null;
+    public class YtSearchItemWidget : Gtk.Box {
+        private Gtk.Picture picture;
+        private YtSearchItem result;
 
-        public ExpandableImage () {
-            var frame = new Gtk.Frame(null);
-
-            this.set_draw_func((drawing_area, cairo_context, i) => {
-                if (pixbuf != null) {
-                    Gdk.cairo_set_source_pixbuf(cairo_context, pixbuf, 0, 0);
-                } else {
-                    cairo_context.set_source_rgb(200, 200, 200);
-                }
-                cairo_context.paint();
-            });
-
-            queue_draw();
+        public YtSearchItemWidget (Gtk.Picture picture, YtSearchItem result) {
+            this.picture = picture;
+            this.result = result;
+            initialize();
         }
 
 
+        private void initialize() {
+            orientation = Gtk.Orientation.VERTICAL;
+
+            hexpand = true;
+            vexpand = false;
+
+            var overlay = new Gtk.Overlay();
+            
+            picture.halign = Gtk.Align.START;
+            overlay.set_child(picture);
+            
+            var label = new Gtk.Label(result.title);
+            label.valign = Gtk.Align.START;
+            label.halign = Gtk.Align.START;
+            label.add_css_class("title-4");
+            var attributes = new Pango.AttrList();
+            attributes.insert(Pango.attr_background_new(15, 15, 15));
+            label.set_attributes(attributes);
+            label.overflow = Gtk.Overflow.HIDDEN;
+
+            var add_button = new Gtk.Button.from_icon_name("folder-download-symbolic");
+            add_button.valign = Gtk.Align.END;
+            add_button.halign = Gtk.Align.END;
+            overlay.add_overlay(label);
+            overlay.add_overlay(add_button);
+
+            var aspect_ratio_box = new Gtk.AspectFrame(0.5f, 0.5f, 16/9, true);
+            aspect_ratio_box.set_child(overlay);
+
+            append(aspect_ratio_box);
+            
+
+            set_size_request(100, 200);
+        }
     }
+    
 }

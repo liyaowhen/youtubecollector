@@ -111,7 +111,7 @@ namespace Song {
                                                 PlaylistItem _item = new PlaylistItem();
                                                 var _item_object = items_object.get_object_member(item);
                                                 _item.item_type = _item_object.get_int_member("item_type");
-                                                _item.name = _item_object.get_string_member("name");
+                                                _item.name = item;
                                                 _item.file = _item_object.get_string_member("file");
                                                 if (_item_object.has_member("picture")) {
                                                     _item.picture = _item_object.get_string_member("picture");

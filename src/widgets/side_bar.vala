@@ -124,6 +124,7 @@ namespace Song {
             config.config_changed.connect(() => {
                 foreach (PlaylistButton e in playlist_buttons) {
                     print("\n" + e.playlist.name + "eee");
+                    remove(e);
                     e.destroy();
                 }
                 if (config.playlists != null) {

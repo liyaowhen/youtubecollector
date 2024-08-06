@@ -97,10 +97,24 @@ namespace Song {
             _content.add_controller(click_monitor);
             click_monitor.set_propagation_phase(Gtk.PropagationPhase.CAPTURE);
 
+            var drag_monitor = new Gtk.GestureDrag();
+            _content.add_controller(drag_monitor);
+            drag_monitor.set_propagation_phase(Gtk.PropagationPhase.CAPTURE);
+
             var signal_hub = SignalHub.get_instance();
             click_monitor.begin.connect(() => {
                 signal_hub.mouse_clicked();
             });
+            drag_monitor.drag_begin.connect(() => {
+                signal_hub.start_drag();
+                signal_hub.isDragging = true;
+            });
+            drag_monitor.drag_end.connect(() => {
+                signal_hub.end_drag();
+                signal_hub.isDragging = false;
+            });
+
+            
         }
 
         public void new_music_popover_show() {

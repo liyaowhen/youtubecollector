@@ -11,6 +11,7 @@ namespace Song {
         public Gtk.Adjustment progress_bar_adjustment;
         private bool isDragging;
         private Gtk.Button progress_bar_controller;
+        private uint? seekTimeout = null;
 
         private string item_directory = Path.build_path("/", Environment.get_user_config_dir(), "com.liyaowhen.Song");
 
@@ -20,10 +21,12 @@ namespace Song {
         public Gst.Element playbin;
 
         public SongControls() {
-            playbin = Gst.ElementFactory.make("playbin", "player");
+            
         }
 
         construct {
+
+            playbin = Gst.ElementFactory.make("playbin", "player");
         // Gstreamer stuff
             isPlaying = false;
         // UI
@@ -37,21 +40,25 @@ namespace Song {
             progress_bar.set_draw_value(false);
 
 
+            
+            var signal_hub = SignalHub.get_instance();
             Timeout.add(500, () => {
 
                 if (playbin != null && isPlaying) {
                     var position = (int64) 0;
                     var duration = (int64) 0;
                     
-                    playbin.set_state(Gst.State.PLAYING);
+                    //playbin.set_state(Gst.State.PLAYING);
+                    
 
                     // Query the current position and duration
                     if (playbin.query_position(Format.TIME, out position) && 
                         playbin.query_duration(Format.TIME, out duration)) {
                         progress_bar.set_range(0, (double) duration / Gst.SECOND);
                         progress_bar.set_value((double) position / Gst.SECOND);
+                        print("working");
                     }
-                    print(position.to_string() + "\n" + duration.to_string() + "\n");
+
                 } else {
 
                 }
@@ -59,18 +66,35 @@ namespace Song {
 
                 return true;
             });
-
-            progress_bar.change_value.connect((range) => {
-
-
+            
+            
+            progress_bar.adjust_bounds.connect((range) => {
                 if (playbin != null) {
-                    var seek_time = (int64)(progress_bar.get_value() * Gst.SECOND);
-                    playbin.seek_simple(Format.TIME, SeekFlags.FLUSH | SeekFlags.KEY_UNIT, seek_time);
-                }
-                
+                    //var seek_time = (int64)(progress_bar.get_value() * Gst.SECOND);
+                    //playbin.seek_simple(Format.TIME, SeekFlags.FLUSH | SeekFlags.TRICKMODE_FORWARD_PREDICTED, seek_time);
+                    isPlaying = false;
+                    print("seeking");
+                    if (seekTimeout != null) {
+                        if (seekTimeout > 0) {
+                            GLib.Source.remove(seekTimeout);
+                        }
+                    }
+    
+                    seekTimeout = Timeout.add(200, () => {
+                        if (playbin != null) {
+                            int64 seek_time = (int64)(progress_bar.get_value() * Gst.SECOND);
+                            playbin.seek_simple(Format.TIME, SeekFlags.FLUSH | SeekFlags.KEY_UNIT, seek_time);
+                        }
+                        return false; // Remove the timeout
+                    });
+                } 
 
-            }); // emitted when user (not program) changes the scale
+            });
+             // emitted when user (not program) changes the scale
 
+            signal_hub.end_drag.connect(() => {
+                isPlaying = true;
+            });
 
         
             append(progress_bar);
@@ -143,6 +167,7 @@ namespace Song {
             print("song full path is " + file_path);
             playbin.set_state(Gst.State.NULL);
             playbin.set_property("uri", File.new_for_path(file_path).get_uri());
+            playbin.set_start_time(0);
             playbin.set_state(Gst.State.PLAYING);
             isPlaying = true;
 

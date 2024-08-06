@@ -32,6 +32,10 @@ namespace Song {
         public signal void exit_yt_search_mode();
         public signal void request_search(string query);
         public YtSearchBar yt_search_bar;
+        
+        public signal void start_drag();
+        public signal void end_drag();
+        public bool isDragging = false;
 
         public static SignalHub get_instance () {
             if (instance == null) {
