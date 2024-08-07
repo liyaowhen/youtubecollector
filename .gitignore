@@ -6,3 +6,4 @@ src/scripts/mycli
 src/scripts/search
 src/scripts/search-utility
 run.sh
+blueprint_compiler

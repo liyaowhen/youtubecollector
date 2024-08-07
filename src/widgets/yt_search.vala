@@ -67,7 +67,7 @@ namespace Song {
         private void instanciate_signals() {
             var signal_hub = SignalHub.get_instance();
 
-            search_entry.changed.connect((i) => {
+            search_entry.search_changed.connect((i) => {
                 if (i.text != "") {
                     if (state != YtSearchBarStates.ENLARGING && isEnlarged != true && requesting_state != YtSearchBarStates.ENLARGING) {
                         enlarge();
@@ -77,6 +77,9 @@ namespace Song {
                     shrink();
                     signal_hub.exit_yt_search_mode();
                 }
+                //signal_hub.request_search(i.get_text());
+            });
+            search_entry.activate.connect((i) => {
                 signal_hub.request_search(i.get_text());
             });
         }
@@ -524,31 +527,19 @@ namespace Song {
 
             hexpand = true;
             vexpand = false;
+            
+            append(picture);
+            picture.vexpand = true;
+            picture.hexpand = true;
+            picture.content_fit = Gtk.ContentFit.COVER;
 
             var overlay = new Gtk.Overlay();
-            
-            picture.halign = Gtk.Align.START;
             overlay.set_child(picture);
-            
-            var label = new Gtk.Label(result.title);
-            label.valign = Gtk.Align.START;
-            label.halign = Gtk.Align.START;
-            label.add_css_class("title-4");
-            var attributes = new Pango.AttrList();
-            attributes.insert(Pango.attr_background_new(15, 15, 15));
-            label.set_attributes(attributes);
-            label.overflow = Gtk.Overflow.HIDDEN;
 
-            var add_button = new Gtk.Button.from_icon_name("folder-download-symbolic");
-            add_button.valign = Gtk.Align.END;
-            add_button.halign = Gtk.Align.END;
-            overlay.add_overlay(label);
-            overlay.add_overlay(add_button);
+            var box = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 5);
+            box.append(new Gtk.Label(result.title));
+            overlay.add_overlay(box);
 
-            var aspect_ratio_box = new Gtk.AspectFrame(0.5f, 0.5f, 16/9, true);
-            aspect_ratio_box.set_child(overlay);
-
-            append(aspect_ratio_box);
             
 
             set_size_request(100, 200);
