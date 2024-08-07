@@ -30,7 +30,10 @@ namespace Song {
                 { "preferences", this.on_preferences_action },
                 { "quit", this.quit }
             };
+            var add_song_to_playlist_action = new SimpleAction("add_item_to_playlist", VariantType.STRING_ARRAY);
+            add_song_to_playlist_action.activate.connect(add_song_to_playlist);
             this.add_action_entries (action_entries, this);
+            this.add_action(add_song_to_playlist_action);
             this.set_accels_for_action ("app.quit", {"<primary>q"});
         }
 
@@ -61,6 +64,42 @@ namespace Song {
 
         private void on_preferences_action () {
             message ("app.preferences action activated");
+        }
+
+        private void add_song_to_playlist(Action a, GLib.Variant? data) {
+            // [current_playlist.name, target_playlist.name, item.name]
+            print("action used");
+            string[] request = data.get_strv ();
+            if (request.length != 3) return;
+
+            var config = Config.get_instance ();
+            print("request is valid");
+
+            PlaylistObject? target_playlist = null;
+            PlaylistObject? current_playlist = null;
+            config.playlists.foreach((i) => {
+                if (i.name == request[1]) {
+                    target_playlist = i;
+                }
+                if (i.name == request[0]) {
+                    current_playlist = i;
+                }
+            });
+            if (target_playlist == null | current_playlist == null) return;
+            print("was able to find playlist reference");
+
+            PlaylistItem? item = null;
+            current_playlist.items.foreach ((i) => {
+                if (i.name == request[2]) {
+                    item = i;
+                }
+            });
+            if (item == null) return;
+            print("item was not null");
+            
+            target_playlist.add_item (item);
+            print("added to other playlist");
+            config.save.begin();
         }
     }
 }

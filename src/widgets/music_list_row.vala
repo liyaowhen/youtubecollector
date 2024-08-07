@@ -3,9 +3,13 @@ namespace Song {
 
         private Settings settings = new Settings("com.liyaowhen.Song.playlists");
         public PlaylistItem item;
+        private PlaylistObject playlist;
 
-        public MusicListRow (PlaylistItem _item) {
+        private Gee.HashSet<Gtk.Widget> playlist_widgets = new Gee.HashSet<Gtk.Widget>();
+
+        public MusicListRow (PlaylistItem _item, PlaylistObject playlist) {
             this.item = _item;
+            this.playlist = playlist;
             build_ui();
         }
 
@@ -54,11 +58,53 @@ namespace Song {
             });
 
             append(play_button);
+            
+            var options_button = new Gtk.MenuButton();
+            options_button.set_icon_name("view-more-symbolic");
+            options_button.add_css_class("flat");
 
+                
+                    var add_playlists_menu = new Menu();
+                    fill_playlists(add_playlists_menu);
+
+                    var menu = new Menu();
+                    menu.append_section("Add To Other Playlists", add_playlists_menu);
+
+                    //popover.set_child(nav_view);
+
+            
+
+            options_button.set_menu_model(menu);
+            prepend(options_button);
 
             spacing = 5;
         }
 
+        private async void fill_playlists(Menu menu) {
+            var config = Config.get_instance();
+
+            menu.remove_all();
+
+            config.playlists.foreach((i) => {
+                if (i != playlist) {
+                    var playlist = new MenuItem(i.name, null);
+                    string[] target_array = {this.playlist.name, i.name, item.name};
+                    playlist.set_action_and_target_value("app.add_item_to_playlist", target_array);
+                    menu.append_item(playlist);
+                }
+            });
+        }
+
+    }
+
+    public class AddItemToPlaylistRequest : GLib.Object {
+        public PlaylistObject? target = null;
+        public PlaylistItem? item = null;
+
+        public AddItemToPlaylistRequest(PlaylistObject playlist, PlaylistItem item) {
+            this.target = playlist;
+            this.item = item;
+        }
     }
 
 }

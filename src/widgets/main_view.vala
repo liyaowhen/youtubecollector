@@ -261,7 +261,7 @@ namespace Song {
                 }
             }*/
             playlist.items.foreach((item) => {
-                MusicListRow i = new MusicListRow(item);
+                MusicListRow i = new MusicListRow(item, playlist);
                 content.append(i);
 
             });
@@ -269,7 +269,7 @@ namespace Song {
             config.config_changed.connect(() => {
                 content.remove_all();
                 playlist.items.foreach((item) => {
-                    MusicListRow i = new MusicListRow(item);
+                    MusicListRow i = new MusicListRow(item, playlist);
                     content.append(i);
         
                 });
