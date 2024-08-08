@@ -67,7 +67,7 @@ namespace Song {
         private void instanciate_signals() {
             var signal_hub = SignalHub.get_instance();
 
-            search_entry.search_changed.connect((i) => {
+            search_entry.changed.connect((i) => {
                 if (i.text != "") {
                     if (state != YtSearchBarStates.ENLARGING && isEnlarged != true && requesting_state != YtSearchBarStates.ENLARGING) {
                         enlarge();
@@ -119,6 +119,8 @@ namespace Song {
         private Gee.HashSet<YtSearchItem> results = new Gee.HashSet<YtSearchItem>();
         private Gee.HashSet<Gtk.Widget> result_widgets = new Gee.HashSet<Gtk.Widget>();
 
+        private Gtk.Spinner loading_spinner = new Gtk.Spinner();
+
         private Subprocess? search_process = null;
 
         private static YtSearchView? search_view = null;
@@ -141,7 +143,8 @@ namespace Song {
 
             append(new Gtk.Label("Youtube Search"));
 
-
+            append(loading_spinner);
+            
 
             instanciate_signals();
 
@@ -174,6 +177,7 @@ namespace Song {
         private void instanciate_signals() {
             var signal_hub = SignalHub.get_instance();
             signal_hub.request_search.connect((query) => {
+                loading_spinner.start();
                 search.begin(query);
                 state = YtSearchViewStates.SEARCHING;
             });
@@ -445,6 +449,7 @@ namespace Song {
                 } */
                 print("idle");
                 state = YtSearchViewStates.IDLE;
+                loading_spinner.stop();
 
                 load_contents();
             } catch (Error e) {

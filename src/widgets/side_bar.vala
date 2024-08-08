@@ -82,11 +82,11 @@ namespace Song {
             valign = Gtk.Align.START;
 
             
-            spacing = 5;
+            spacing = 0;
             margin_bottom = 5;
             margin_top = 5;
             margin_start = 5;
-            margin_end = 5;
+            margin_end = 0;
 
             vexpand = true;
             hexpand = true;
