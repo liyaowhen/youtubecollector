@@ -1,1 +1,1 @@
-i18n.gettext('song', preset: 'glib')
+i18n.gettext('youtubecollector', preset: 'glib')

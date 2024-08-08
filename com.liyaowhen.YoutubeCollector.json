@@ -1,12 +1,12 @@
 {
-    "id" : "com.liyaowhen.Song",
+    "id" : "com.liyaowhen.YoutubeCollector",
     "runtime" : "org.gnome.Platform",
     "runtime-version" : "master",
     "sdk" : "org.gnome.Sdk",
     "sdk-extensions" : [
         "org.freedesktop.Sdk.Extension.vala"
     ],
-    "command" : "song",
+    "command" : "youtubecollector",
     "finish-args" : [
         "--share=network",
         "--share=ipc",
@@ -32,13 +32,13 @@
     ],
     "modules" : [
         {
-            "name" : "song",
+            "name" : "youtubecollector",
             "builddir" : true,
             "buildsystem" : "meson",
             "sources" : [
                 {
                     "type" : "git",
-                    "url" : "file:///home/liyaowhen/Documents/Song"
+                    "url" : "file:///home/liyaowhen/Documents/YoutubeCollector/youtubecollector"
                 }
             ]
         }

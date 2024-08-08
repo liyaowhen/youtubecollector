@@ -1,6 +1,6 @@
-data/com.liyaowhen.Song.desktop.in
-data/com.liyaowhen.Song.metainfo.xml.in
-data/com.liyaowhen.Song.gschema.xml
+data/com.liyaowhen.YoutubeCollector.desktop.in
+data/com.liyaowhen.YoutubeCollector.metainfo.xml.in
+data/com.liyaowhen.YoutubeCollector.gschema.xml
 src/main.vala
 src/window.vala
 src/window.ui

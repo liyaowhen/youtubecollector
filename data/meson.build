@@ -1,6 +1,6 @@
 desktop_file = i18n.merge_file(
-        input: 'com.liyaowhen.Song.desktop.in',
-       output: 'com.liyaowhen.Song.desktop',
+        input: 'com.liyaowhen.YoutubeCollector.desktop.in',
+       output: 'com.liyaowhen.YoutubeCollector.desktop',
          type: 'desktop',
        po_dir: '../po',
       install: true,
@@ -13,7 +13,7 @@ if desktop_utils.found()
 endif
 
 schemas_dir = get_option('prefix') / get_option('datadir') / 'glib-2.0' / 'schemas'
-settings_schemas = [ 'com.liyaowhen.Song.gschema.xml', 'com.liyaowhen.Song.playlists.gschema.xml' ]
+settings_schemas = [ 'com.liyaowhen.YoutubeCollector.gschema.xml', 'com.liyaowhen.YoutubeCollector.playlists.gschema.xml' ]
 
 install_data(settings_schemas, install_dir: schemas_dir)
 
@@ -23,8 +23,8 @@ gnome = import('gnome')
 gnome.compile_schemas(depend_files: files(settings_schemas))
 
 appstream_file = i18n.merge_file(
-        input: 'com.liyaowhen.Song.metainfo.xml.in',
-       output: 'com.liyaowhen.Song.metainfo.xml',
+        input: 'com.liyaowhen.YoutubeCollector.metainfo.xml.in',
+       output: 'com.liyaowhen.YoutubeCollector.metainfo.xml',
        po_dir: '../po',
       install: true,
   install_dir: get_option('datadir') / 'metainfo'
@@ -34,7 +34,7 @@ appstreamcli = find_program('appstreamcli', required: false, disabler: true)
 test('Validate appstream file', appstreamcli,
      args: ['validate', '--no-net', '--explain', appstream_file])
 
-install_data('com.liyaowhen.Song.gschema.xml',
+install_data('com.liyaowhen.YoutubeCollector.gschema.xml',
   install_dir: get_option('datadir') / 'glib-2.0' / 'schemas'
 )
 

@@ -1,7 +1,7 @@
 [Desktop Entry]
-Name=song
-Exec=song
-Icon=com.liyaowhen.Song
+Name=youtubecollector
+Exec=youtubecollector
+Icon=com.liyaowhen.YoutubeCollector
 Terminal=false
 Type=Application
 Categories=GTK;

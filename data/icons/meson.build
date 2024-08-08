@@ -1,4 +1,4 @@
-application_id = 'com.liyaowhen.Song'
+application_id = 'com.liyaowhen.YoutubeCollector'
 
 scalable_dir = 'hicolor' / 'scalable' / 'apps'
 install_data(

@@ -1,4 +1,4 @@
-song_sources = [
+youtubecollector_sources = [
   'main.vala',
   'application.vala',
   'window.vala',
@@ -16,7 +16,7 @@ song_sources = [
   'background.vala',
 ]
 
-song_deps = [
+youtubecollector_deps = [
   dependency('gtk4'),
   dependency('libadwaita-1', version: '>= 1.4'),
   dependency('vte-2.91-gtk4'),
@@ -27,13 +27,13 @@ song_deps = [
   
 ]
 
-song_sources += gnome.compile_resources('song-resources',
-  'song.gresource.xml',
-  c_name: 'song'
+youtubecollector_sources += gnome.compile_resources('youtubecollector-resources',
+  'youtubecollector.gresource.xml',
+  c_name: 'youtubecollector'
 )
 
 
-executable('song', song_sources,
-  dependencies: song_deps,
+executable('youtubecollector', youtubecollector_sources,
+  dependencies: youtubecollector_deps,
        install: true,
 )
